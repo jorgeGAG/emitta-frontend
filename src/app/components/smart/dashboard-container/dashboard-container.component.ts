@@ -35,10 +35,9 @@ import { CompanyModalComponent } from '../../dumb/company-modal/company-modal.co
     <!-- PANTALLA 1: Login de Acceso Protegido del Cajero -->
     <app-cashier-login
       *ngIf="!(isLoggedIn$ | async)"
-      [errorMessage]="loginError"
       [activeCompany]="activeCompany$ | async"
       [systemStatus]="systemStatus$ | async"
-      (loginSuccess)="onCashierLogin($event)"
+      (loginSuccess)="onCashierLoginSuccess()"
       (openCompanyModal)="openCompanies()"
     ></app-cashier-login>
 
@@ -389,20 +388,13 @@ export class DashboardContainerComponent implements OnInit {
     });
   }
 
-  onCashierLogin(evt: { username: string; pass: string }): void {
+  onCashierLoginSuccess(): void {
     this.loginError = null;
-    this.authService.login(evt.username, evt.pass).subscribe(res => {
-      if (res.success) {
-        this.loginError = null;
-        this.invoiceService.authenticateAndLoadRealDocuments();
-        const token = this.invoiceService.getToken();
-        if (token) {
-          this.fiscalService.loadFiscalConfiguration(token).subscribe();
-        }
-      } else {
-        this.loginError = res.error || 'Credenciales incorrectas.';
-      }
-    });
+    this.invoiceService.authenticateAndLoadRealDocuments();
+    const token = this.invoiceService.getToken();
+    if (token) {
+      this.fiscalService.loadFiscalConfiguration(token).subscribe();
+    }
   }
 
   onLogout(): void {

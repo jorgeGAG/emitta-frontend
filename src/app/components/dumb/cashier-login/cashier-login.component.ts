@@ -1,8 +1,9 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AppIconComponent } from '../app-icon/app-icon.component';
 import { Company, SystemStatus } from '../../../models/company.model';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-cashier-login',
@@ -48,9 +49,9 @@ import { Company, SystemStatus } from '../../../models/company.model';
           <span>BD: {{ systemStatus?.database || 'Local Fallback' }}</span>
         </div>
 
-        <!-- Error Alert -->
+        <!-- Error Alert (Alerta Roja cuando el usuario o clave fallan) -->
         <div class="error-banner" *ngIf="errorMessage">
-          <app-icon name="alert" [size]="15"></app-icon>
+          <app-icon name="alert" [size]="16"></app-icon>
           <span>{{ errorMessage }}</span>
         </div>
 
@@ -68,6 +69,7 @@ import { Company, SystemStatus } from '../../../models/company.model';
                 required
                 placeholder="Ej: cajero1 o admin"
                 autocomplete="username"
+                [disabled]="loading"
               />
             </div>
           </div>
@@ -84,6 +86,7 @@ import { Company, SystemStatus } from '../../../models/company.model';
                 required
                 placeholder="Ingresa tu contraseña"
                 autocomplete="current-password"
+                [disabled]="loading"
               />
             </div>
           </div>
@@ -249,14 +252,20 @@ import { Company, SystemStatus } from '../../../models/company.model';
     .error-banner {
       background: #fef2f2;
       border: 1px solid #fecaca;
-      color: #991b1b;
+      color: #b91c1c;
       padding: 10px 14px;
       border-radius: 8px;
-      font-size: 0.84rem;
+      font-size: 0.86rem;
+      font-weight: 600;
       display: flex;
       align-items: center;
       gap: 8px;
       margin-bottom: 18px;
+      animation: fadeIn 0.2s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
     }
     .login-form {
       display: flex;
@@ -341,33 +350,37 @@ import { Company, SystemStatus } from '../../../models/company.model';
   `]
 })
 export class CashierLoginComponent {
-  private _errorMessage: string | null = null;
-  @Input() set errorMessage(val: string | null) {
-    this._errorMessage = val;
-    if (val) {
-      this.loading = false;
-    }
-  }
-  get errorMessage(): string | null {
-    return this._errorMessage;
-  }
+  private readonly authService = inject(AuthService);
 
   @Input() activeCompany: Company | null = null;
   @Input() systemStatus: SystemStatus | null = null;
-  @Output() loginSuccess = new EventEmitter<{ username: string; pass: string }>();
+  @Output() loginSuccess = new EventEmitter<void>();
   @Output() openCompanyModal = new EventEmitter<void>();
 
   username = '';
   password = '';
   loading = false;
+  errorMessage: string | null = null;
 
   onSubmit(): void {
-    if (!this.username || !this.password) return;
+    if (!this.username || !this.password || this.loading) return;
     this.loading = true;
-    this._errorMessage = null;
-    this.loginSuccess.emit({
-      username: this.username,
-      pass: this.password
+    this.errorMessage = null;
+
+    this.authService.login(this.username, this.password).subscribe({
+      next: (res) => {
+        this.loading = false;
+        if (res.success) {
+          this.errorMessage = null;
+          this.loginSuccess.emit();
+        } else {
+          this.errorMessage = res.error || 'Usuario o contraseña incorrecta.';
+        }
+      },
+      error: (err) => {
+        this.loading = false;
+        this.errorMessage = err.error?.error || 'Error de conexión con la base de datos.';
+      }
     });
   }
 }

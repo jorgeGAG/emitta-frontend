@@ -39,7 +39,7 @@ export class AuthService {
         return { success: false, error: res.error || 'Credenciales inválidas' };
       }),
       catchError(err => {
-        const msg = err.error?.error || 'Error autenticando con la base de datos.';
+        const msg = err.error?.error || (typeof err.error === 'string' ? err.error : 'Usuario no registrado o clave incorrecta.');
         return of({ success: false, error: msg });
       })
     );

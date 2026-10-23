@@ -341,7 +341,17 @@ import { Company, SystemStatus } from '../../../models/company.model';
   `]
 })
 export class CashierLoginComponent {
-  @Input() errorMessage: string | null = null;
+  private _errorMessage: string | null = null;
+  @Input() set errorMessage(val: string | null) {
+    this._errorMessage = val;
+    if (val) {
+      this.loading = false;
+    }
+  }
+  get errorMessage(): string | null {
+    return this._errorMessage;
+  }
+
   @Input() activeCompany: Company | null = null;
   @Input() systemStatus: SystemStatus | null = null;
   @Output() loginSuccess = new EventEmitter<{ username: string; pass: string }>();
@@ -354,12 +364,10 @@ export class CashierLoginComponent {
   onSubmit(): void {
     if (!this.username || !this.password) return;
     this.loading = true;
+    this._errorMessage = null;
     this.loginSuccess.emit({
       username: this.username,
       pass: this.password
     });
-    setTimeout(() => {
-      this.loading = false;
-    }, 1200);
   }
 }

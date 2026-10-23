@@ -87,11 +87,17 @@ function handleApiRoutes(req, res, parsedUrl, body) {
   if (pathname === '/api/pos/auth/login' && method === 'POST') {
     authService.login(body?.username, body?.password)
       .then(result => {
-        res.writeHead(result.success ? 200 : 401);
+        res.writeHead(result.success ? 200 : 401, {
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Access-Control-Allow-Origin': '*'
+        });
         res.end(JSON.stringify(result));
       })
       .catch(err => {
-        res.writeHead(500);
+        res.writeHead(500, {
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Access-Control-Allow-Origin': '*'
+        });
         res.end(JSON.stringify({ success: false, error: err.message }));
       });
     return true;

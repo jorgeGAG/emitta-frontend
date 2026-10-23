@@ -71,6 +71,66 @@ class MongoRepository {
     );
     return invoice;
   }
+
+  // --- SEED INICIAL ---
+  async seedIfEmpty() {
+    try {
+      const compCount = await this.db.collection('companies').countDocuments();
+      if (compCount === 0) {
+        console.log('🌱 [DB] Inicializando colecciones con datos de prueba en MongoDB Atlas...');
+        await this.db.collection('companies').insertOne({
+          id: 'comp_default_01',
+          name: 'Comercializadora Principal (Emitta Cloud)',
+          ruc: '1792345678001',
+          legalName: 'NEXORF TECNOLOGIAS Y FACTURACION S.A.S.',
+          tradeName: 'EMITTA FACTURACION CLOUD',
+          mainAddress: 'Av. República de El Salvador N36-84 y Naciones Unidas, Quito - Ecuador',
+          clientId: 'emitta_0f0b2e0c-b6e3-4212-835b-0f7086d32aaa',
+          clientSecret: '4JfhIbySCySjQN0hxcaIBY36d29GtaBCQWSOzVRxYKo',
+          isActive: true,
+          establishments: [
+            { code: '001', name: 'Sucursal Matriz', address: 'Establecimiento 001, Matriz' }
+          ],
+          createdAt: new Date().toISOString()
+        });
+      }
+
+      const userCount = await this.db.collection('users').countDocuments();
+      if (userCount === 0) {
+        await this.db.collection('users').insertMany([
+          {
+            id: 'usr_001',
+            username: 'cajero1',
+            password: '1234',
+            fullName: 'Carlos Zambrano Loor',
+            email: 'czambrano@mitienda.com',
+            role: 'CAJERO',
+            branchCode: '001',
+            boxCode: '001',
+            branchName: 'Sucursal Matriz · Guayaquil',
+            companyId: 'comp_default_01',
+            createdAt: new Date().toISOString()
+          },
+          {
+            id: 'usr_002',
+            username: 'admin',
+            password: '1234',
+            fullName: 'Ing. María Elena Solís',
+            email: 'msolis@mitienda.com',
+            role: 'SUPERVISOR',
+            branchCode: '001',
+            boxCode: '002',
+            branchName: 'Sucursal Matriz · Administración',
+            companyId: 'comp_default_01',
+            createdAt: new Date().toISOString()
+          }
+        ]);
+        console.log('🌱 [DB] Usuarios y Empresa inicial sembrados con éxito.');
+      }
+    } catch (err) {
+      console.warn('⚠️  [DB] Error en seed inicial:', err.message);
+    }
+  }
 }
 
 module.exports = new MongoRepository();

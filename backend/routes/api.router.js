@@ -85,8 +85,10 @@ function handleApiRoutes(req, res, parsedUrl, body) {
 
   // --- AUTENTICACIÓN Y USUARIOS ---
   if (pathname === '/api/pos/auth/login' && method === 'POST') {
+    console.log(`🔐 [AUTH] Solicitud de login para usuario: "${body?.username}"`);
     authService.login(body?.username, body?.password)
       .then(result => {
+        console.log(`🔑 [AUTH] Resultado para "${body?.username}": ${result.success ? 'AUTORIZADO (200)' : 'DENEGADO (401) - ' + result.error}`);
         res.writeHead(result.success ? 200 : 401, {
           'Content-Type': 'application/json; charset=UTF-8',
           'Access-Control-Allow-Origin': '*'
@@ -94,6 +96,7 @@ function handleApiRoutes(req, res, parsedUrl, body) {
         res.end(JSON.stringify(result));
       })
       .catch(err => {
+        console.error(`❌ [AUTH] Error servidor: ${err.message}`);
         res.writeHead(500, {
           'Content-Type': 'application/json; charset=UTF-8',
           'Access-Control-Allow-Origin': '*'

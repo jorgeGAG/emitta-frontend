@@ -160,12 +160,23 @@ async function startServer() {
       if (!err && stats.isFile()) {
         const ext = path.extname(filePath).toLowerCase();
         const contentType = MIME_TYPES[ext] || 'application/octet-stream';
-        res.writeHead(200, { 'Content-Type': contentType });
+        const headers = { 'Content-Type': contentType };
+        if (ext === '.html') {
+          headers['Cache-Control'] = 'no-cache, no-store, must-revalidate';
+          headers['Pragma'] = 'no-cache';
+          headers['Expires'] = '0';
+        }
+        res.writeHead(200, headers);
         fs.createReadStream(filePath).pipe(res);
       } else {
         // 5. Fallback SPA: responder index.html para rutas Angular (/pos, /documentos, etc.)
         const indexPath = path.join(DIST, 'index.html');
-        res.writeHead(200, { 'Content-Type': 'text/html; charset=UTF-8' });
+        res.writeHead(200, {
+          'Content-Type': 'text/html; charset=UTF-8',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        });
         fs.createReadStream(indexPath).pipe(res);
       }
     });

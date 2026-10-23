@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
+import { Component, EventEmitter, Input, Output, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AppIconComponent } from '../app-icon/app-icon.component';
@@ -351,6 +351,7 @@ import { AuthService } from '../../../services/auth.service';
 })
 export class CashierLoginComponent {
   private readonly authService = inject(AuthService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   @Input() activeCompany: Company | null = null;
   @Input() systemStatus: SystemStatus | null = null;
@@ -366,9 +367,22 @@ export class CashierLoginComponent {
     if (!this.username || !this.password || this.loading) return;
     this.loading = true;
     this.errorMessage = null;
+    this.cdr.detectChanges();
+
+    // Temporizador de seguridad: nunca dejar la UI congelada más de 3 segundos
+    const timeoutHandle = setTimeout(() => {
+      if (this.loading) {
+        this.loading = false;
+        if (!this.errorMessage) {
+          this.errorMessage = 'Tiempo de espera agotado al autenticar.';
+        }
+        this.cdr.detectChanges();
+      }
+    }, 3000);
 
     this.authService.login(this.username, this.password).subscribe({
       next: (res) => {
+        clearTimeout(timeoutHandle);
         this.loading = false;
         if (res.success) {
           this.errorMessage = null;
@@ -376,10 +390,13 @@ export class CashierLoginComponent {
         } else {
           this.errorMessage = res.error || 'Usuario o contraseña incorrecta.';
         }
+        this.cdr.detectChanges();
       },
       error: (err) => {
+        clearTimeout(timeoutHandle);
         this.loading = false;
         this.errorMessage = err.error?.error || 'Error de conexión con la base de datos.';
+        this.cdr.detectChanges();
       }
     });
   }

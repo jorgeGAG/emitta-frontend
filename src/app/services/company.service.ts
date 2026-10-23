@@ -16,8 +16,8 @@ export class CompanyService {
   public readonly systemStatus$: Observable<SystemStatus | null> = this._systemStatus$.asObservable();
 
   constructor() {
-    this.refreshActiveCompany();
-    this.checkSystemStatus();
+    this.refreshActiveCompany().subscribe({ error: () => {} });
+    this.checkSystemStatus().subscribe({ error: () => {} });
   }
 
   public checkSystemStatus(): Observable<SystemStatus> {

@@ -1,0 +1,18 @@
+{
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": ["/api/*", "*.{png,jpg,jpeg,gif,svg,ico,css,js}"]
+  },
+  "routes": [
+    {
+      "route": "/api/*",
+      "rewrite": "https://api-emitta.nexorf.dev/api/*"
+    }
+  ],
+  "globalHeaders": {
+    "content-security-policy": "default-src 'self' https://api-emitta.nexorf.dev; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:;"
+  },
+  "mimeTypes": {
+    ".json": "application/json"
+  }
+}

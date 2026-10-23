@@ -1,0 +1,13 @@
+{
+  "/api": {
+    "target": "https://api-emitta.nexorf.dev",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  },
+  "/actuator": {
+    "target": "https://api-emitta.nexorf.dev",
+    "secure": false,
+    "changeOrigin": true
+  }
+}

@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject, ChangeDetectorRef, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CreateInvoiceRequest, IdentificationType, InvoiceItem } from '../../../models/invoice.model';
@@ -116,15 +116,15 @@ import { Product } from '../../../models/product.model';
           <div class="section-header-flex">
             <span class="section-title">3. DETALLE DE PRODUCTOS O SERVICIOS (BASE DE DATOS)</span>
             <div style="display: flex; gap: 8px; align-items: center;">
-              <!-- Selector de productos desde MongoDB -->
-              <select *ngIf="availableProducts.length > 0" class="select-db-prod" (change)="onSelectProductFromDb($event)">
-                <option value="">🛒 Cargar desde Catálogo BD...</option>
+              <!-- Selector de productos desde MongoDB Atlas -->
+              <select class="select-db-prod" (change)="onSelectProductFromDb($event)">
+                <option value="">🛒 Cargar desde Catálogo BD ({{ availableProducts.length }} disponibles)...</option>
                 <option *ngFor="let p of availableProducts" [value]="p.id">
                   {{ p.sku }} - {{ p.name }} (\${{ p.unitPrice }} · {{ p.vatRate }}% IVA)
                 </option>
               </select>
               <button type="button" class="btn-add-line" (click)="addItem()">
-                ＋ Agregar Producto
+                ＋ Fila Vacía
               </button>
             </div>
           </div>
@@ -564,7 +564,7 @@ import { Product } from '../../../models/product.model';
     }
   `]
 })
-export class InvoiceCreatorComponent {
+export class InvoiceCreatorComponent implements OnInit {
   // RETO 4: Dumb Component puro
   @Input() loading: boolean | null = false;
   @Input() pointOfIssueId: string | null = null;
@@ -574,6 +574,10 @@ export class InvoiceCreatorComponent {
   @Input() admissionSaturated: { saturated: boolean; retryAfter: number; idempotencyKey: string | null } | null = null;
   @Output() submitInvoice = new EventEmitter<CreateInvoiceRequest>();
   @Output() retryInvoice = new EventEmitter<void>();
+
+  private readonly productService = inject(ProductService);
+  private readonly cdr = inject(ChangeDetectorRef);
+  availableProducts: Product[] = [];
 
   onRetryInvoice(): void {
     this.retryInvoice.emit();
@@ -611,9 +615,6 @@ export class InvoiceCreatorComponent {
 
   paymentMethod = '20';
 
-  private readonly productService = inject(ProductService);
-  availableProducts: Product[] = [];
-
   subtotal15 = 0;
   subtotal0 = 0;
   totalDiscount = 0;
@@ -623,8 +624,16 @@ export class InvoiceCreatorComponent {
 
   constructor() {
     this.recalculate();
+  }
+
+  ngOnInit(): void {
     this.productService.products$.subscribe(list => {
       this.availableProducts = list || [];
+      this.cdr.detectChanges();
+    });
+    this.productService.loadProducts().subscribe(list => {
+      this.availableProducts = list || [];
+      this.cdr.detectChanges();
     });
   }
 

@@ -69,10 +69,11 @@ export class InvoiceService {
     this.loadInvoicesFromDatabase();
   }
 
-  public loadInvoicesFromDatabase(): void {
-    this.http.get<any[]>('/api/pos/invoices').pipe(
+  public loadInvoicesFromDatabase(companyId?: string): void {
+    const url = companyId ? `/api/pos/invoices?companyId=${encodeURIComponent(companyId)}` : '/api/pos/invoices';
+    this.http.get<any[]>(url).pipe(
       tap(dbList => {
-        if (Array.isArray(dbList) && dbList.length > 0) {
+        if (Array.isArray(dbList)) {
           const mapped: DocumentView[] = dbList.map(inv => ({
             id: inv.documentId || inv.id,
             sequential: inv.invoiceNumber || '001-001-000000001',

@@ -76,60 +76,84 @@ class CompanyService {
       }
     });
 
-    let taxpayer = null;
-    let establishments = [];
+    let firstEntry = null;
+    let establishmentsMap = new Map();
+    let taxpayerId = null;
 
-    if (fiscalRes.status === 200 && Array.isArray(fiscalRes.data)) {
-      const entry = fiscalRes.data[0];
-      if (entry) {
-        taxpayer = entry.taxpayer || null;
-        establishments = entry.establishments || [];
+    if (fiscalRes.status === 200 && Array.isArray(fiscalRes.data) && fiscalRes.data.length > 0) {
+      firstEntry = fiscalRes.data[0];
+      taxpayerId = firstEntry.taxpayerId;
+
+      // Agrupar establecimientos devueltos por la API de Emitta
+      for (const row of fiscalRes.data) {
+        if (row.establishmentCode && !establishmentsMap.has(row.establishmentCode)) {
+          establishmentsMap.set(row.establishmentCode, {
+            code: row.establishmentCode,
+            name: `Establecimiento ${row.establishmentCode}`,
+            address: row.establishmentAddress || row.mainAddress || 'Dirección de Establecimiento',
+            status: row.establishmentStatus || 'ACTIVE'
+          });
+        }
       }
     }
 
     // Paso 3: Consultar vigencia de firma electrónica si hay contribuyente
     let certificateInfo = null;
-    if (taxpayer?.id) {
-      try {
-        const certRes = await httpsRequest({
-          hostname: 'api-emitta.nexorf.dev',
-          port: 443,
-          path: `/api/v1/taxpayers/${taxpayer.id}/certificates`,
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`
+    if (firstEntry?.certificateId || taxpayerId) {
+      if (firstEntry?.certificateValidUntil) {
+        certificateInfo = {
+          subject: 'Certificado Digital SRI',
+          validTo: firstEntry.certificateValidUntil,
+          active: firstEntry.certificateStatus === 'ACTIVE'
+        };
+      } else if (taxpayerId) {
+        try {
+          const certRes = await httpsRequest({
+            hostname: 'api-emitta.nexorf.dev',
+            port: 443,
+            path: `/api/v1/taxpayers/${taxpayerId}/certificates`,
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          if (certRes.status === 200 && Array.isArray(certRes.data) && certRes.data.length > 0) {
+            const cert = certRes.data[0];
+            certificateInfo = {
+              subject: cert.subjectName || 'Certificado Digital SRI',
+              validTo: cert.validTo || 'Vigente',
+              active: cert.active !== false
+            };
           }
-        });
-        if (certRes.status === 200 && Array.isArray(certRes.data) && certRes.data.length > 0) {
-          const cert = certRes.data[0];
-          certificateInfo = {
-            subject: cert.subjectName || 'Certificado Digital SRI',
-            validTo: cert.validTo || 'Vigente',
-            active: cert.active !== false
-          };
+        } catch (err) {
+          console.warn('Advertencia consultando certificados:', err.message);
         }
-      } catch (err) {
-        console.warn('Advertencia consultando certificados:', err.message);
       }
     }
 
-    // Paso 4: Construir modelo de la empresa
+    // Paso 4: Construir modelo oficial de la empresa con los campos de la API
+    const establishmentsList = Array.from(establishmentsMap.values());
+    if (establishmentsList.length === 0) {
+      establishmentsList.push({
+        code: '001',
+        name: 'Sucursal Matriz',
+        address: firstEntry?.mainAddress || 'Dirección Matriz'
+      });
+    }
+
     const newCompany = {
-      id: `comp_${Date.now()}`,
-      name: name?.trim() || taxpayer?.tradeName || taxpayer?.legalName || 'Nueva Empresa',
-      ruc: taxpayer?.identificationNumber || '0000000000001',
-      legalName: taxpayer?.legalName || name || 'Razón Social no registrada',
-      tradeName: taxpayer?.tradeName || name || 'Nombre Comercial no registrado',
-      mainAddress: taxpayer?.mainAddress || 'Dirección Matriz',
-      accountingObligation: taxpayer?.accountingObligation || false,
+      id: `comp_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+      name: name?.trim() || firstEntry?.tradeName || firstEntry?.legalName || 'Nueva Empresa',
+      ruc: firstEntry?.ruc || '0000000000001',
+      legalName: firstEntry?.legalName || name || 'Razón Social Oficial',
+      tradeName: firstEntry?.tradeName || name || 'Nombre Comercial',
+      mainAddress: firstEntry?.mainAddress || 'Dirección Matriz',
+      taxpayerId: taxpayerId || null,
+      accountingObligation: false,
       clientId: cleanClientId,
       clientSecret: cleanClientSecret,
       isActive: true, // Se activa de inmediato
-      establishments: establishments.map(est => ({
-        code: est.code,
-        name: est.name || `Establecimiento ${est.code}`,
-        address: est.address || 'Dirección Sucursal'
-      })),
+      establishments: establishmentsList,
       certificate: certificateInfo,
       createdAt: new Date().toISOString()
     };

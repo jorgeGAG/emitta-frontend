@@ -377,6 +377,13 @@ export class DashboardContainerComponent implements OnInit {
       this.companies = list;
     });
 
+    // Reaccionar a la empresa activa y filtrar facturas por su companyId
+    this.activeCompany$.subscribe(comp => {
+      if (comp?.id) {
+        this.invoiceService.loadInvoicesFromDatabase(comp.id);
+      }
+    });
+
     this.invoiceService.token$.subscribe(token => {
       if (token) {
         this.fiscalService.loadFiscalConfiguration(token).subscribe();

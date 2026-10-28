@@ -478,7 +478,11 @@ export class CompanyModalComponent {
       next: (res) => {
         this.switching = false;
         if (res.success) {
-          window.location.reload(); // Recarga limpia para sincronizar credenciales en todos los servicios
+          // Limpiar tokens anteriores en sesión para rotación limpia obligatoria
+          try {
+            sessionStorage.removeItem('emitta_api_token');
+          } catch {}
+          window.location.reload();
         }
       },
       error: () => {
@@ -502,6 +506,9 @@ export class CompanyModalComponent {
         this.connecting = false;
         if (res.success && res.company) {
           this.successMessage = `¡Empresa '${res.company.legalName}' conectada con éxito y registrada en la base de datos!`;
+          try {
+            sessionStorage.removeItem('emitta_api_token');
+          } catch {}
           setTimeout(() => {
             window.location.reload();
           }, 1500);

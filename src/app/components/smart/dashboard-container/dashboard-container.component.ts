@@ -98,7 +98,13 @@ import { CompanyModalComponent } from '../../dumb/company-modal/company-modal.co
           <app-invoice-creator
             #invoiceCreatorRef
             [loading]="(loading$ | async) ?? false"
+            [pointOfIssueId]="(activeFiscalEntry$ | async)?.pointOfIssueId || null"
+            [activeEstablishmentCode]="(activeFiscalEntry$ | async)?.establishmentCode || ''"
+            [activePointOfIssueCode]="(activeFiscalEntry$ | async)?.pointOfIssueCode || ''"
+            [issuerRuc]="(activeFiscalEntry$ | async)?.ruc || ''"
+            [admissionSaturated]="admissionSaturated$ | async"
             (submitInvoice)="onInvoiceSubmit($event, invoiceCreatorRef)"
+            (retryInvoice)="onRetryInvoice(invoiceCreatorRef)"
           ></app-invoice-creator>
 
           <!-- Tabla con las facturas recién emitidas en esta sesión -->

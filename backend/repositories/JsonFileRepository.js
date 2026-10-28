@@ -6,17 +6,18 @@ const DB_FILE = path.join(__dirname, '..', 'data', 'db.json');
 const INITIAL_DATA = {
   companies: [
     {
-      id: 'comp_default_01',
-      name: 'Comercializadora Principal (Emitta Cloud)',
-      ruc: '1792345678001',
-      legalName: 'NEXORF TECNOLOGIAS Y FACTURACION S.A.S.',
-      tradeName: 'EMITTA FACTURACION CLOUD',
-      mainAddress: 'Av. República de El Salvador N36-84 y Naciones Unidas, Quito - Ecuador',
+      id: 'comp_jorge_01',
+      name: 'Comercio Ecuador (Jorge Gabriel Ante)',
+      ruc: '0550249817001',
+      legalName: 'ANTE GUANOQUIZA JORGE GABRIEL',
+      tradeName: 'Comercio Ecuador',
+      mainAddress: 'COTOPAXI, SAQUISILI, SAQUISILI',
       clientId: 'emitta_0f0b2e0c-b6e3-4212-835b-0f7086d32aaa',
       clientSecret: '4JfhIbySCySjQN0hxcaIBY36d29GtaBCQWSOzVRxYKo',
       isActive: true,
       establishments: [
-        { code: '001', name: 'Sucursal Matriz', address: 'Establecimiento 001, Matriz' }
+        { code: '001', name: 'Sucursal Saquisili', address: 'COTOPAXI, SAQUISILI, SAQUISILI' },
+        { code: '002', name: 'Sucursal Latacunga', address: 'Latacunga' }
       ],
       createdAt: new Date().toISOString()
     }
@@ -44,21 +45,21 @@ const INITIAL_DATA = {
       role: 'CAJERO',
       branchCode: '001',
       boxCode: '001',
-      branchName: 'Sucursal Matriz · Guayaquil',
-      companyId: 'comp_default_01',
+      branchName: 'Sucursal Saquisili · Cotopaxi',
+      companyId: 'comp_jorge_01',
       createdAt: new Date().toISOString()
     },
     {
       id: 'usr_002',
       username: 'admin',
       password: '1234',
-      fullName: 'Ing. María Elena Solís',
-      email: 'msolis@mitienda.com',
+      fullName: 'Jorge Gabriel Ante',
+      email: 'jorgeante@correo.com',
       role: 'ADMIN_EMPRESA',
       branchCode: '001',
-      boxCode: '002',
-      branchName: 'Sucursal Matriz · Administración',
-      companyId: 'comp_default_01',
+      boxCode: '001',
+      branchName: 'Sucursal Saquisili · Administración',
+      companyId: 'comp_jorge_01',
       createdAt: new Date().toISOString()
     }
   ],

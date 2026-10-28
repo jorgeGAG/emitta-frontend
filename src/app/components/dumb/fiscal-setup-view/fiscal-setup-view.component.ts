@@ -105,6 +105,7 @@ import { AppIconComponent } from '../app-icon/app-icon.component';
                   placeholder="Ej: Av. Amazonas N24-196 y Luis Cordero, Quito"
                   required
                 />
+                <span class="field-hint">Dirección principal registrada ante el SRI.</span>
               </div>
             </div>
           </div>
@@ -141,6 +142,7 @@ import { AppIconComponent } from '../app-icon/app-icon.component';
                   name="initEstName"
                   placeholder="Ej: Sucursal Centro - Matriz"
                 />
+                <span class="field-hint">Nombre identificativo del local.</span>
               </div>
 
               <div class="field-group">
@@ -152,6 +154,7 @@ import { AppIconComponent } from '../app-icon/app-icon.component';
                   placeholder="Ej: Av. Amazonas y Cordero"
                   required
                 />
+                <span class="field-hint">Ubicación física del establecimiento.</span>
               </div>
             </div>
           </div>
@@ -188,6 +191,7 @@ import { AppIconComponent } from '../app-icon/app-icon.component';
                   name="initPoiName"
                   placeholder="Ej: Caja Principal 01 - Facturación"
                 />
+                <span class="field-hint">Identificación interna de la caja.</span>
               </div>
             </div>
           </div>
@@ -582,23 +586,35 @@ import { AppIconComponent } from '../app-icon/app-icon.component';
     .field-group {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 4px;
       margin-bottom: 12px;
     }
     .field-group label {
       font-size: 12px;
       font-weight: 600;
       color: #334155;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      height: 18px;
+      margin: 0;
+      white-space: nowrap;
     }
     .req {
       color: #ef4444;
+      font-weight: 700;
+      display: inline;
     }
     .field-hint {
       font-size: 11px;
       color: #94a3b8;
+      min-height: 16px;
+      line-height: 1.3;
+      margin-top: 2px;
     }
     input[type="text"], input[type="password"], select {
-      padding: 10px 14px;
+      height: 38px;
+      padding: 0 12px;
       border: 1px solid #cbd5e1;
       border-radius: 7px;
       font-size: 13px;
@@ -606,6 +622,7 @@ import { AppIconComponent } from '../app-icon/app-icon.component';
       outline: none;
       background: #ffffff;
       transition: border-color 0.15s;
+      box-sizing: border-box;
     }
     input[type="text"]:focus, input[type="password"]:focus, select:focus {
       border-color: #2563eb;
@@ -615,11 +632,13 @@ import { AppIconComponent } from '../app-icon/app-icon.component';
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 16px;
+      align-items: start;
     }
     .grid-3 {
       display: grid;
       grid-template-columns: 1fr 1fr 1fr;
       gap: 16px;
+      align-items: start;
     }
     .wizard-actions {
       display: flex;

@@ -16,6 +16,7 @@ import { RideViewerModalComponent } from '../../dumb/ride-viewer-modal/ride-view
 import { CashierLoginComponent } from '../../dumb/cashier-login/cashier-login.component';
 import { FiscalSetupViewComponent } from '../../dumb/fiscal-setup-view/fiscal-setup-view.component';
 import { CompanyModalComponent } from '../../dumb/company-modal/company-modal.component';
+import { AppIconComponent } from '../../dumb/app-icon/app-icon.component';
 
 @Component({
   selector: 'app-dashboard-container',
@@ -29,7 +30,8 @@ import { CompanyModalComponent } from '../../dumb/company-modal/company-modal.co
     RideViewerModalComponent,
     CashierLoginComponent,
     FiscalSetupViewComponent,
-    CompanyModalComponent
+    CompanyModalComponent,
+    AppIconComponent
   ],
   template: `
     <!-- PANTALLA 1: Login de Acceso Protegido del Cajero (100% Limpio) -->
@@ -94,7 +96,7 @@ import { CompanyModalComponent } from '../../dumb/company-modal/company-modal.co
             </div>
           </div>
 
-          <!-- Componente Emisor de Facturas POS -->
+          <!-- Componente Emisor de Facturas POS (Limpio y enfocado) -->
           <app-invoice-creator
             #invoiceCreatorRef
             [loading]="(loading$ | async) ?? false"
@@ -106,21 +108,6 @@ import { CompanyModalComponent } from '../../dumb/company-modal/company-modal.co
             (submitInvoice)="onInvoiceSubmit($event, invoiceCreatorRef)"
             (retryInvoice)="onRetryInvoice(invoiceCreatorRef)"
           ></app-invoice-creator>
-
-          <!-- Tabla con las facturas recién emitidas en esta sesión -->
-          <div class="recent-sales-section">
-            <div class="section-title">
-              <h3>Ventas Recientes de Caja</h3>
-              <p>Comprobantes generados en este turno</p>
-            </div>
-            <app-document-registry
-              [invoices]="(invoices$ | async) ?? []"
-              [selectedId]="(selectedInvoice$ | async)?.id || null"
-              (selectInvoice)="onInvoiceSelect($event)"
-              (downloadOfficialPdf)="onDownloadOfficialPdf($event)"
-              (downloadOfficialXml)="onDownloadOfficialXml($event)"
-            ></app-document-registry>
-          </div>
         </ng-container>
 
         <!-- 2. VISTA HISTORIAL DE COMPROBANTES Y MÉTRICAS (BASE DE DATOS) -->
@@ -130,6 +117,11 @@ import { CompanyModalComponent } from '../../dumb/company-modal/company-modal.co
               <span class="eyebrow"><span class="dot"></span> REGISTRO OFICIAL EN BASE DE DATOS</span>
               <h1>Comprobantes Electrónicos</h1>
               <p>Historial y auditoría de facturas registradas en la base de datos a través de la API REST.</p>
+            </div>
+            <div class="banner-right">
+              <button type="button" class="btn-new-sale" (click)="onTabChange('create-invoice')">
+                <app-icon name="cart" [size]="16"></app-icon> ＋ Nueva Factura (POS)
+              </button>
             </div>
           </div>
 
@@ -307,17 +299,24 @@ import { CompanyModalComponent } from '../../dumb/company-modal/company-modal.co
       font-size: 13px;
       cursor: pointer;
     }
-    .recent-sales-section {
-      margin-top: 36px;
-    }
-    .section-title h3 {
-      font-size: 18px;
-      margin: 0 0 4px;
-    }
-    .section-title p {
+    .btn-new-sale {
+      background: #2563eb;
+      color: #ffffff;
+      border: none;
+      padding: 9px 18px;
+      border-radius: 8px;
       font-size: 13px;
-      color: var(--text-muted);
-      margin: 0 0 16px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+      transition: all 0.15s ease;
+    }
+    .btn-new-sale:hover {
+      background: #1d4ed8;
+      box-shadow: 0 4px 6px rgba(37, 99, 235, 0.3);
     }
     .app-footer {
       background: #ffffff;
@@ -427,6 +426,10 @@ export class DashboardContainerComponent implements OnInit {
     this.invoiceService.emitInvoice(request).subscribe(res => {
       if (res && (res.status === 'QUEUED' || res.created)) {
         creator?.clearForm();
+        // Redirigir de forma elegante al registro de comprobantes para ver la factura y descargar RIDE
+        setTimeout(() => {
+          this.onTabChange('invoices');
+        }, 1200);
       }
     });
   }

@@ -1,4 +1,5 @@
 const repoFactory = require('../repositories/RepositoryFactory');
+const companyService = require('./company.service');
 
 class InvoiceService {
   async getInvoices(companyId = null) {
@@ -10,9 +11,28 @@ class InvoiceService {
       throw new Error('Datos de factura incompletos.');
     }
 
+    // Si no viene companyId, asociar automáticamente la empresa activa actual
+    let companyId = invoiceData.companyId || null;
+    let issuerRuc = invoiceData.issuerRuc || null;
+    if (!companyId) {
+      try {
+        const activeComp = await companyService.getActiveCompany();
+        if (activeComp) {
+          companyId = activeComp.id || activeComp.companyId;
+          issuerRuc = activeComp.ruc;
+        }
+      } catch {}
+    }
+
+    // Extraer RUC emisor de la Clave de Acceso SRI si está disponible (dígitos 11 al 23)
+    if (!issuerRuc && invoiceData.accessKey && invoiceData.accessKey.length === 49) {
+      issuerRuc = invoiceData.accessKey.substring(10, 23);
+    }
+
     const record = {
       id: invoiceData.id || (invoiceData.documentId ? `inv_${invoiceData.documentId}` : `inv_${Date.now()}`),
-      companyId: invoiceData.companyId || null,
+      companyId: companyId,
+      issuerRuc: issuerRuc,
       documentId: invoiceData.documentId,
       invoiceNumber: invoiceData.invoiceNumber, // ej: 001-001-000000123
       buyerRuc: invoiceData.buyerRuc || '9999999999999',

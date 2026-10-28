@@ -63,19 +63,6 @@ import { AppIconComponent } from '../../dumb/app-icon/app-icon.component';
 
         <!-- 1. VISTA PUNTO DE VENTA / EMITIR FACTURA (VISTA PRINCIPAL DEL SISTEMA) -->
         <ng-container *ngIf="activeTab === 'create-invoice'">
-          <div class="pos-header-banner" *ngIf="currentUser$ | async as usr">
-            <div>
-              <span class="eyebrow"><span class="dot"></span> SISTEMA DE VENTAS Y FACTURACIÓN MULTI-EMPRESA</span>
-              <h1>Punto de Venta (POS)</h1>
-              <p>Genera ventas con comprobantes autorizados en tiempo real por el SRI.</p>
-            </div>
-            <div class="banner-right">
-              <span class="badge-branch">
-                {{ (activeCompany$ | async)?.legalName || usr.branchName }} · Sucursal {{ (activeFiscalEntry$ | async)?.establishmentCode || '001' }} · Caja {{ (activeFiscalEntry$ | async)?.pointOfIssueCode || '001' }}
-              </span>
-            </div>
-          </div>
-
           <!-- Alerta de saturación SRI RabbitMQ (Idempotencia) -->
           <div class="admission-warning-card" *ngIf="(admissionSaturated$ | async)?.saturated">
             <div class="warning-header">
@@ -189,10 +176,10 @@ import { AppIconComponent } from '../../dumb/app-icon/app-icon.component';
     }
     .main-content {
       flex: 1;
-      max-width: 1280px;
+      max-width: 1380px;
       width: 100%;
       margin: 0 auto;
-      padding: 24px;
+      padding: 14px 20px;
       box-sizing: border-box;
     }
     .alert-banner {
@@ -321,13 +308,13 @@ import { AppIconComponent } from '../../dumb/app-icon/app-icon.component';
     .app-footer {
       background: #ffffff;
       border-top: 1px solid var(--border-color);
-      padding: 20px 24px;
-      margin-top: 40px;
+      padding: 14px 20px;
+      margin-top: 20px;
       font-size: 12px;
       color: #73859a;
     }
     .footer-inner {
-      max-width: 1280px;
+      max-width: 1380px;
       margin: 0 auto;
       display: flex;
       justify-content: space-between;

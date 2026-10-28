@@ -10,49 +10,48 @@ import { AppIconComponent } from '../app-icon/app-icon.component';
   template: `
     <div class="kpi-container" *ngIf="metrics">
       <div class="kpi-card">
-        <div class="kpi-header">
+        <div class="kpi-top">
           <span class="kpi-title">TOTAL FACTURADO</span>
-          <span class="kpi-icon"><app-icon name="dollar" [size]="18"></app-icon></span>
+          <span class="kpi-icon"><app-icon name="dollar" [size]="14"></app-icon></span>
         </div>
-        <div class="kpi-value">\${{ metrics.totalAmount | number:'1.2-2' }}</div>
-        <div class="kpi-footer">
-          <span class="positive">USD con IVA 15%</span>
-          <span>Base imponible</span>
+        <div class="kpi-main">
+          <span class="kpi-value">\${{ metrics.totalAmount | number:'1.2-2' }}</span>
+          <span class="kpi-sub">USD con IVA</span>
         </div>
       </div>
 
       <div class="kpi-card">
-        <div class="kpi-header">
-          <span class="kpi-title">COMPROBANTES TOTALES</span>
-          <span class="kpi-icon"><app-icon name="file-text" [size]="18"></app-icon></span>
+        <div class="kpi-top">
+          <span class="kpi-title">TOTAL COMPROBANTES</span>
+          <span class="kpi-icon"><app-icon name="receipt" [size]="14"></app-icon></span>
         </div>
-        <div class="kpi-value">{{ metrics.totalInvoices }}</div>
-        <div class="kpi-footer">
-          <span>Establecimiento 001 - P.Emi 001</span>
-        </div>
-      </div>
-
-      <div class="kpi-card success-card">
-        <div class="kpi-header">
-          <span class="kpi-title">AUTORIZADAS POR EL SRI</span>
-          <span class="kpi-icon"><app-icon name="check" [size]="18"></app-icon></span>
-        </div>
-        <div class="kpi-value">{{ metrics.authorizedCount }}</div>
-        <div class="kpi-footer">
-          <span class="badge success">{{ getAuthorizedPercentage() }}% de éxito</span>
-          <span>Clave de acceso y RIDE</span>
+        <div class="kpi-main">
+          <span class="kpi-value">{{ metrics.totalInvoices }}</span>
+          <span class="kpi-sub">Emitidos</span>
         </div>
       </div>
 
-      <div class="kpi-card warning-card">
-        <div class="kpi-header">
-          <span class="kpi-title">EN COLA / ASÍNCRONO</span>
-          <span class="kpi-icon"><app-icon name="clock" [size]="18"></app-icon></span>
+      <div class="kpi-card success-accent">
+        <div class="kpi-top">
+          <span class="kpi-title">AUTORIZADAS SRI</span>
+          <span class="kpi-icon success-icon"><app-icon name="check" [size]="14"></app-icon></span>
         </div>
-        <div class="kpi-value">{{ metrics.pendingCount }}</div>
-        <div class="kpi-footer">
-          <span class="badge warning">RabbitMQ + XAdES</span>
-          <span>Procesamiento Outbox</span>
+        <div class="kpi-main">
+          <span class="kpi-value">{{ metrics.authorizedCount }}</span>
+          <span class="kpi-sub success-pill">{{ getAuthorizedPercentage() }}% éxito</span>
+        </div>
+      </div>
+
+      <div class="kpi-card warning-accent">
+        <div class="kpi-top">
+          <span class="kpi-title">EN PROCESO SRI</span>
+          <span class="kpi-icon warning-icon"><app-icon name="clock" [size]="14"></app-icon></span>
+        </div>
+        <div class="kpi-main">
+          <span class="kpi-value">{{ metrics.pendingCount }}</span>
+          <span class="kpi-sub" [class.warning-pill]="metrics.pendingCount > 0">
+            {{ metrics.pendingCount === 0 ? 'Sin cola' : 'En cola' }}
+          </span>
         </div>
       </div>
     </div>
@@ -60,69 +59,113 @@ import { AppIconComponent } from '../app-icon/app-icon.component';
   styles: [`
     .kpi-container {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-      gap: 16px;
-      margin-bottom: 30px;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
     }
+
     .kpi-card {
       background: #ffffff;
-      border: 1px solid var(--border-card);
-      border-radius: 14px;
-      padding: 20px;
+      border: 1px solid #e2e8f0;
+      border-radius: 9px;
+      padding: 10px 14px;
       display: flex;
       flex-direction: column;
-      box-shadow: 0 4px 16px rgba(21, 49, 81, 0.03);
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      gap: 4px;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+      transition: all 0.15s ease;
     }
+
     .kpi-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(21, 49, 81, 0.06);
+      box-shadow: 0 3px 8px rgba(15, 23, 42, 0.06);
+      border-color: #cbd5e1;
     }
-    .kpi-header {
+
+    .kpi-top {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 8px;
     }
+
     .kpi-title {
-      font-size: 11px;
+      font-size: 0.68rem;
       font-weight: 700;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.06em;
+      color: #64748b;
+      text-transform: uppercase;
+    }
+
+    .kpi-icon {
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+    }
+
+    .kpi-main {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .kpi-value {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+    }
+
+    .kpi-sub {
+      font-size: 0.72rem;
+      font-weight: 600;
       color: #64748b;
     }
-    .kpi-icon {
-      font-size: 16px;
+
+    .success-accent {
+      border-left: 3px solid #10b981;
     }
-    .kpi-value {
-      font-size: 28px;
-      font-weight: 800;
-      color: #10243a;
-      margin-bottom: 12px;
-      letter-spacing: -0.02em;
+
+    .success-icon {
+      color: #10b981;
     }
-    .kpi-footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 11px;
-      color: #73859a;
-      border-top: 1px solid #f1f5f9;
-      padding-top: 10px;
+
+    .success-pill {
+      background: #f0fdf4;
+      color: #166534;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 0.68rem;
+      border: 1px solid #dcfce7;
+      font-weight: 700;
     }
-    .positive {
-      color: #2563eb;
-      font-weight: 600;
+
+    .warning-accent {
+      border-left: 3px solid #f59e0b;
     }
-    .success-card {
-      border-top: 3px solid #10b981;
+
+    .warning-icon {
+      color: #f59e0b;
     }
-    .warning-card {
-      border-top: 3px solid #f59e0b;
+
+    .warning-pill {
+      background: #fefce8;
+      color: #854d0e;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 0.68rem;
+      border: 1px solid #fef08a;
+      font-weight: 700;
+    }
+
+    @media (max-width: 900px) {
+      .kpi-container {
+        grid-template-columns: repeat(2, 1fr);
+      }
     }
   `]
 })
 export class KpiCardsComponent {
-  // RETO 4: Dumb Component
   @Input() metrics: BillingMetrics | null = null;
 
   getAuthorizedPercentage(): number {

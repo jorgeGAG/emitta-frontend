@@ -97,13 +97,11 @@ import { AppIconComponent } from '../../dumb/app-icon/app-icon.component';
           ></app-invoice-creator>
         </ng-container>
 
-        <!-- 2. VISTA HISTORIAL DE COMPROBANTES Y MÉTRICAS (BASE DE DATOS) -->
+        <!-- 2. VISTA HISTORIAL DE COMPROBANTES Y MÉTRICAS -->
         <ng-container *ngIf="activeTab === 'invoices'">
           <div class="pos-header-banner">
             <div>
-              <span class="eyebrow"><span class="dot"></span> REGISTRO OFICIAL EN BASE DE DATOS</span>
               <h1>Comprobantes Electrónicos</h1>
-              <p>Historial y auditoría de facturas registradas en la base de datos a través de la API REST.</p>
             </div>
             <div class="banner-right">
               <button type="button" class="btn-new-sale" (click)="onTabChange('create-invoice')">

@@ -11,7 +11,7 @@ class InvoiceService {
     }
 
     const record = {
-      id: invoiceData.id || `inv_${Date.now()}`,
+      id: invoiceData.id || (invoiceData.documentId ? `inv_${invoiceData.documentId}` : `inv_${Date.now()}`),
       companyId: invoiceData.companyId || null,
       documentId: invoiceData.documentId,
       invoiceNumber: invoiceData.invoiceNumber, // ej: 001-001-000000123
@@ -24,7 +24,7 @@ class InvoiceService {
       authorizationDate: invoiceData.authorizationDate || new Date().toISOString(),
       itemsCount: Array.isArray(invoiceData.items) ? invoiceData.items.length : (invoiceData.itemsCount || 1),
       issuedBy: invoiceData.issuedBy || 'Cajero',
-      createdAt: new Date().toISOString()
+      createdAt: invoiceData.createdAt || new Date().toISOString()
     };
 
     return await repoFactory.repository.saveInvoice(record);

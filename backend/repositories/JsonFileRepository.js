@@ -207,7 +207,11 @@ class JsonFileRepository {
     const db = readDb();
     if (!db.invoices) db.invoices = [];
 
-    const existingIndex = db.invoices.findIndex(inv => inv.id === invoice.id || inv.accessKey === invoice.accessKey);
+    const existingIndex = db.invoices.findIndex(inv =>
+      (invoice.documentId && inv.documentId === invoice.documentId) ||
+      inv.id === invoice.id ||
+      (invoice.accessKey && inv.accessKey === invoice.accessKey)
+    );
     if (existingIndex >= 0) {
       db.invoices[existingIndex] = { ...db.invoices[existingIndex], ...invoice };
     } else {

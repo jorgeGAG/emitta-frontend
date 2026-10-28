@@ -64,8 +64,12 @@ class MongoRepository {
   }
 
   async saveInvoice(invoice) {
+    const filter = invoice.documentId
+      ? { $or: [{ documentId: invoice.documentId }, { id: invoice.id }] }
+      : { id: invoice.id };
+
     await this.db.collection('invoices').updateOne(
-      { $or: [{ id: invoice.id }, { accessKey: invoice.accessKey }] },
+      filter,
       { $set: invoice },
       { upsert: true }
     );

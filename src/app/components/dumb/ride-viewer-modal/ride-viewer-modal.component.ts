@@ -544,12 +544,12 @@ export class RideViewerModalComponent {
                || (this.fiscalEntries && this.fiscalEntries.length > 0 ? this.fiscalEntries[0] : null);
 
     return {
-      legalName: match?.legalName || 'ANTE GUANOQUIZA JORGE GABRIEL',
-      tradeName: match?.tradeName || 'Comercio Ecuador',
-      ruc: match?.ruc || '0550249817001',
-      mainAddress: match?.mainAddress || 'COTOPAXI, SAQUISILI, SAQUISILI',
+      legalName: match?.legalName || 'EMPRESA EMISORA',
+      tradeName: match?.tradeName || 'PUNTO DE EMISIÓN',
+      ruc: match?.ruc || (this.invoice?.accessKey && this.invoice.accessKey.length === 49 ? this.invoice.accessKey.substring(10, 23) : '9999999999999'),
+      mainAddress: match?.mainAddress || 'Ecuador',
       establishmentCode: match?.establishmentCode || estCode,
-      establishmentAddress: match?.establishmentAddress || match?.mainAddress || 'COTOPAXI, SAQUISILI, SAQUISILI'
+      establishmentAddress: match?.establishmentAddress || match?.mainAddress || 'Matriz'
     };
   }
 

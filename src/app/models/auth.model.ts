@@ -11,3 +11,12 @@ export interface CashierUser {
   branchName: string;   // 'Sucursal Matriz'
   companyId?: string | null;
 }
+
+export interface LoginResponse {
+  success: boolean;
+  token?: string;
+  tokenType?: string;
+  expiresIn?: number;
+  user?: CashierUser;
+  error?: string;
+}

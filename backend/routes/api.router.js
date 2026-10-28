@@ -85,6 +85,20 @@ function handleApiRoutes(req, res, parsedUrl, body) {
   }
 
   // --- AUTENTICACIÓN Y USUARIOS ---
+  if (pathname === '/api/pos/auth/me' && method === 'GET') {
+    const authHeader = req.headers['authorization'] || '';
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : null;
+    const verification = authService.verifyToken(token);
+    if (verification.valid) {
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
+      res.end(JSON.stringify({ success: true, user: verification.payload }));
+    } else {
+      res.writeHead(401, { 'Content-Type': 'application/json; charset=UTF-8' });
+      res.end(JSON.stringify({ success: false, error: verification.error }));
+    }
+    return true;
+  }
+
   if (pathname === '/api/pos/auth/login' && method === 'POST') {
     console.log(`🔐 [AUTH] Solicitud de login para usuario: "${body?.username}"`);
     authService.login(body?.username, body?.password)

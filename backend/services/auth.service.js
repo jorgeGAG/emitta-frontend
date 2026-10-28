@@ -1,4 +1,5 @@
 const repoFactory = require('../repositories/RepositoryFactory');
+const { signJwt, verifyJwt } = require('../config/jwt');
 
 class AuthService {
   async login(username, password) {
@@ -29,6 +30,20 @@ class AuthService {
       companyId: user.companyId
     };
 
+    // Generar Token JWT Oficial para el Cajero / Usuario
+    const tokenPayload = {
+      sub: safeUser.id,
+      username: safeUser.username,
+      fullName: safeUser.fullName,
+      email: safeUser.email,
+      role: safeUser.role,
+      branchCode: safeUser.branchCode,
+      boxCode: safeUser.boxCode,
+      companyId: safeUser.companyId
+    };
+
+    const token = signJwt(tokenPayload);
+
     // Si el usuario es de una empresa específica (no superadmin), activar automáticamente su empresa
     let userCompany = null;
     if (user.companyId) {
@@ -40,7 +55,18 @@ class AuthService {
       }
     }
 
-    return { success: true, user: safeUser, activeCompany: userCompany };
+    return {
+      success: true,
+      token,
+      tokenType: 'Bearer',
+      expiresIn: 86400,
+      user: safeUser,
+      activeCompany: userCompany
+    };
+  }
+
+  verifyToken(token) {
+    return verifyJwt(token);
   }
 
   async getUsers(companyId = null) {

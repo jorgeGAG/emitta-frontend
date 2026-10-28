@@ -114,18 +114,15 @@ import { Product } from '../../../models/product.model';
         <!-- 3. ITEMS DINAMICOS -->
         <div class="form-section">
           <div class="section-header-flex">
-            <span class="section-title">3. DETALLE DE PRODUCTOS O SERVICIOS (BASE DE DATOS)</span>
+            <span class="section-title">3. DETALLE DE PRODUCTOS O SERVICIOS</span>
             <div style="display: flex; gap: 8px; align-items: center;">
-              <!-- Selector de productos desde MongoDB Atlas -->
+              <!-- Selector de productos del catálogo -->
               <select class="select-db-prod" (change)="onSelectProductFromDb($event)">
-                <option value="">🛒 Cargar desde Catálogo BD ({{ availableProducts.length }} disponibles)...</option>
+                <option value="">＋ Agregar Producto...</option>
                 <option *ngFor="let p of availableProducts" [value]="p.id">
                   {{ p.sku }} - {{ p.name }} (\${{ p.unitPrice }} · {{ p.vatRate }}% IVA)
                 </option>
               </select>
-              <button type="button" class="btn-add-line" (click)="addItem()">
-                ＋ Fila Vacía
-              </button>
             </div>
           </div>
 
@@ -530,18 +527,20 @@ import { Product } from '../../../models/product.model';
       border-top: 1px solid var(--border-color);
     }
     .select-db-prod {
-      padding: 6px 12px;
-      border: 1px solid #93c5fd;
+      padding: 8px 14px;
+      border: 1px solid var(--primary-blue);
       border-radius: 6px;
-      background: #eff6ff;
-      color: #1e40af;
+      background: var(--blue-soft);
+      color: var(--primary-blue);
       font-size: 13px;
-      font-weight: 600;
+      font-weight: 700;
       cursor: pointer;
       outline: none;
+      transition: all 0.15s ease;
     }
     .select-db-prod:hover {
       background: #dbeafe;
+      border-color: #1d4ed8;
     }
     .spinner {
       width: 14px;

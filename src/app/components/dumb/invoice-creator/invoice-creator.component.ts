@@ -53,42 +53,48 @@ import { Product } from '../../../models/product.model';
               </span>
             </div>
 
-            <div class="client-grid">
-              <div class="field-item id-type-col">
-                <label>Tipo Identificación</label>
-                <select [(ngModel)]="buyerType" name="buyerType" (change)="onBuyerTypeChange()">
-                  <option value="CONSUMIDOR_FINAL">Consumidor Final</option>
-                  <option value="CEDULA">Cédula (10)</option>
-                  <option value="RUC">RUC (13)</option>
-                  <option value="PASAPORTE">Pasaporte</option>
-                </select>
+            <div class="client-form-grid">
+              <!-- Fila 1: Identificación y Nombre -->
+              <div class="client-row-1">
+                <div class="field-item">
+                  <label>Tipo Identificación</label>
+                  <select [(ngModel)]="buyerType" name="buyerType" (change)="onBuyerTypeChange()">
+                    <option value="CONSUMIDOR_FINAL">Consumidor Final</option>
+                    <option value="CEDULA">Cédula (10)</option>
+                    <option value="RUC">RUC (13)</option>
+                    <option value="PASAPORTE">Pasaporte</option>
+                  </select>
+                </div>
+
+                <div class="field-item">
+                  <label>Identificación</label>
+                  <input
+                    type="text"
+                    [(ngModel)]="buyerId"
+                    name="buyerId"
+                    required
+                    [placeholder]="buyerType === 'RUC' ? '1790012345001' : '1712345678'"
+                    [readonly]="buyerType === 'CONSUMIDOR_FINAL'"
+                  />
+                </div>
+
+                <div class="field-item">
+                  <label>Razón Social / Nombre Completo</label>
+                  <input type="text" [(ngModel)]="buyerName" name="buyerName" required placeholder="Nombre del cliente o razón social" />
+                </div>
               </div>
 
-              <div class="field-item id-num-col">
-                <label>Identificación</label>
-                <input
-                  type="text"
-                  [(ngModel)]="buyerId"
-                  name="buyerId"
-                  required
-                  [placeholder]="buyerType === 'RUC' ? '1790012345001' : '1712345678'"
-                  [readonly]="buyerType === 'CONSUMIDOR_FINAL'"
-                />
-              </div>
+              <!-- Fila 2: Correo y Dirección -->
+              <div class="client-row-2">
+                <div class="field-item">
+                  <label>Correo Electrónico (Notificación RIDE)</label>
+                  <input type="email" [(ngModel)]="buyerEmail" name="buyerEmail" placeholder="cliente@correo.ec" />
+                </div>
 
-              <div class="field-item name-col">
-                <label>Razón Social / Nombres Completos</label>
-                <input type="text" [(ngModel)]="buyerName" name="buyerName" required placeholder="Nombre del cliente o razón social" />
-              </div>
-
-              <div class="field-item email-col">
-                <label>Correo Electrónico (Notificación RIDE)</label>
-                <input type="email" [(ngModel)]="buyerEmail" name="buyerEmail" placeholder="cliente@correo.ec" />
-              </div>
-
-              <div class="field-item address-col">
-                <label>Dirección</label>
-                <input type="text" [(ngModel)]="buyerAddress" name="buyerAddress" placeholder="Quito, Ecuador" />
+                <div class="field-item">
+                  <label>Dirección Domiciliaria</label>
+                  <input type="text" [(ngModel)]="buyerAddress" name="buyerAddress" placeholder="Quito, Ecuador" />
+                </div>
               </div>
             </div>
           </div>
@@ -375,17 +381,29 @@ import { Product } from '../../../models/product.model';
       text-transform: uppercase;
     }
 
-    /* CLIENT GRID COMPACTO */
-    .client-grid {
+    /* CLIENT GRID PERFECTAMENTE ALINEADO */
+    .client-form-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .client-row-1 {
       display: grid;
-      grid-template-columns: 140px 150px 1fr 1fr 1fr;
-      gap: 10px;
+      grid-template-columns: 160px 175px 1fr;
+      gap: 12px;
+    }
+
+    .client-row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
     }
 
     .field-item {
       display: flex;
       flex-direction: column;
-      gap: 3px;
+      gap: 4px;
     }
 
     .field-item label {
@@ -395,16 +413,22 @@ import { Product } from '../../../models/product.model';
       text-transform: uppercase;
       letter-spacing: 0.3px;
       margin: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 1.2;
+      height: 15px;
     }
 
     .field-item input, .field-item select {
-      height: 33px;
-      padding: 4px 8px;
-      font-size: 0.82rem;
+      height: 34px;
+      padding: 4px 10px;
+      font-size: 0.83rem;
       border: 1px solid #cbd5e1;
       border-radius: 6px;
       background: #ffffff;
       color: #0f172a;
+      box-sizing: border-box;
     }
 
     .field-item input:focus, .field-item select:focus {

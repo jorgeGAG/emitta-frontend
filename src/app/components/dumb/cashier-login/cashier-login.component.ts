@@ -1,8 +1,7 @@
-import { Component, EventEmitter, Input, Output, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, EventEmitter, Output, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AppIconComponent } from '../app-icon/app-icon.component';
-import { Company, SystemStatus } from '../../../models/company.model';
 import { AuthService } from '../../../services/auth.service';
 
 @Component({
@@ -12,7 +11,7 @@ import { AuthService } from '../../../services/auth.service';
   template: `
     <div class="login-page">
       <div class="login-card">
-        <!-- Logo & Branding -->
+        <!-- Logo & Branding Limpio -->
         <div class="brand-header">
           <div class="logo-box">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -23,39 +22,18 @@ import { AuthService } from '../../../services/auth.service';
               <polyline points="10 9 9 9 8 9"></polyline>
             </svg>
           </div>
-          <span class="badge-tag">Punto de Venta · SRI Ecuador</span>
+          <span class="badge-tag">Facturación Electrónica · SRI Ecuador</span>
           <h2>Acceso al Sistema</h2>
-          <p>Ingresa tus credenciales para iniciar turno de facturación.</p>
+          <p>Ingresa tus credenciales para acceder a la plataforma.</p>
         </div>
 
-        <!-- Indicador de Empresa Activa y Base de Datos -->
-        <div class="company-select-card" (click)="openCompanyModal.emit()">
-          <div class="company-card-info">
-            <span class="comp-icon"><app-icon name="building" [size]="16"></app-icon></span>
-            <div class="comp-text">
-              <span class="comp-sub">EMPRESA EMISORA SRI</span>
-              <strong class="comp-name">{{ activeCompany?.tradeName || activeCompany?.name || 'Emitta Facturación Cloud' }}</strong>
-              <span class="comp-ruc">RUC: {{ activeCompany?.ruc || '1792345678001' }}</span>
-            </div>
-          </div>
-          <button type="button" class="btn-change-comp" title="Cambiar empresa o conectar nueva">
-            Cambiar ▾
-          </button>
-        </div>
-
-        <!-- Badge de Base de Datos -->
-        <div class="db-pill-login" [class.mongo]="systemStatus?.isMongoAtlas">
-          <span class="dot"></span>
-          <span>BD: {{ systemStatus?.database || 'Local Fallback' }}</span>
-        </div>
-
-        <!-- Error Alert (Alerta Roja cuando el usuario o clave fallan) -->
+        <!-- Alerta de Error Clara y Visible -->
         <div class="error-banner" *ngIf="errorMessage">
           <app-icon name="alert" [size]="16"></app-icon>
           <span>{{ errorMessage }}</span>
         </div>
 
-        <!-- Formulario de Login Estándar -->
+        <!-- Formulario Limpio -->
         <form (ngSubmit)="onSubmit()" class="login-form">
           <div class="form-group">
             <label for="username">Usuario o Correo</label>
@@ -67,7 +45,7 @@ import { AuthService } from '../../../services/auth.service';
                 name="username"
                 [(ngModel)]="username"
                 required
-                placeholder="Ej: cajero1 o admin"
+                placeholder="Ingresa tu usuario"
                 autocomplete="username"
                 [disabled]="loading"
               />
@@ -93,12 +71,12 @@ import { AuthService } from '../../../services/auth.service';
 
           <button type="submit" class="btn-primary" [disabled]="loading || !username || !password">
             <span *ngIf="loading" class="spinner"></span>
-            <span>{{ loading ? 'Autenticando en BD...' : 'Iniciar Sesión' }}</span>
+            <span>{{ loading ? 'Iniciando Sesión...' : 'Iniciar Sesión' }}</span>
           </button>
         </form>
 
         <div class="footer-note">
-          <span>Usuarios demo: <strong>cajero1</strong> (1234) | <strong>admin</strong> (1234)</span>
+          <span>Emitta POS Cloud · Sistema Multi-Empresa Seguro</span>
         </div>
       </div>
     </div>
@@ -115,15 +93,15 @@ import { AuthService } from '../../../services/auth.service';
     .login-card {
       background: #ffffff;
       border-radius: 14px;
-      padding: 32px 36px;
+      padding: 36px 36px 28px;
       width: 100%;
-      max-width: 440px;
+      max-width: 420px;
       box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
       border: 1px solid rgba(226, 232, 240, 0.8);
     }
     .brand-header {
       text-align: center;
-      margin-bottom: 20px;
+      margin-bottom: 24px;
     }
     .logo-box {
       width: 52px;
@@ -157,98 +135,6 @@ import { AuthService } from '../../../services/auth.service';
       font-size: 0.86rem;
       color: #64748b;
     }
-
-    /* Selector de Empresa en Login */
-    .company-select-card {
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 10px;
-      padding: 10px 14px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      cursor: pointer;
-      margin-bottom: 12px;
-      transition: all 0.2s;
-    }
-    .company-select-card:hover {
-      background: #eff6ff;
-      border-color: #93c5fd;
-    }
-    .company-card-info {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      overflow: hidden;
-    }
-    .comp-icon {
-      color: #2563eb;
-      display: flex;
-    }
-    .comp-text {
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-    .comp-sub {
-      font-size: 0.65rem;
-      font-weight: 800;
-      color: #64748b;
-      letter-spacing: 0.5px;
-    }
-    .comp-name {
-      font-size: 0.88rem;
-      color: #0f172a;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .comp-ruc {
-      font-size: 0.75rem;
-      color: #64748b;
-    }
-    .btn-change-comp {
-      border: 1px solid #cbd5e1;
-      background: #ffffff;
-      padding: 5px 9px;
-      border-radius: 6px;
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: #2563eb;
-      cursor: pointer;
-      flex-shrink: 0;
-    }
-
-    .db-pill-login {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      font-size: 0.73rem;
-      font-weight: 700;
-      color: #92400e;
-      background: #fffbeb;
-      border: 1px solid #fde68a;
-      border-radius: 12px;
-      padding: 3px 10px;
-      margin-bottom: 18px;
-    }
-    .db-pill-login.mongo {
-      color: #065f46;
-      background: #ecfdf5;
-      border-color: #a7f3d0;
-    }
-    .db-pill-login .dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: #f59e0b;
-    }
-    .db-pill-login.mongo .dot {
-      background: #10b981;
-    }
-
     .error-banner {
       background: #fef2f2;
       border: 1px solid #fecaca;
@@ -260,7 +146,7 @@ import { AuthService } from '../../../services/auth.service';
       display: flex;
       align-items: center;
       gap: 8px;
-      margin-bottom: 18px;
+      margin-bottom: 20px;
       animation: fadeIn 0.2s ease;
     }
     @keyframes fadeIn {
@@ -332,9 +218,9 @@ import { AuthService } from '../../../services/auth.service';
     }
     .footer-note {
       text-align: center;
-      margin-top: 20px;
+      margin-top: 22px;
       font-size: 0.78rem;
-      color: #64748b;
+      color: #94a3b8;
     }
     .spinner {
       width: 16px;
@@ -353,10 +239,7 @@ export class CashierLoginComponent {
   private readonly authService = inject(AuthService);
   private readonly cdr = inject(ChangeDetectorRef);
 
-  @Input() activeCompany: Company | null = null;
-  @Input() systemStatus: SystemStatus | null = null;
   @Output() loginSuccess = new EventEmitter<void>();
-  @Output() openCompanyModal = new EventEmitter<void>();
 
   username = '';
   password = '';
@@ -369,7 +252,6 @@ export class CashierLoginComponent {
     this.errorMessage = null;
     this.cdr.detectChanges();
 
-    // Temporizador de seguridad: nunca dejar la UI congelada más de 3 segundos
     const timeoutHandle = setTimeout(() => {
       if (this.loading) {
         this.loading = false;

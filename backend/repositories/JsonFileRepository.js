@@ -23,6 +23,19 @@ const INITIAL_DATA = {
   ],
   users: [
     {
+      id: 'usr_super_01',
+      username: 'superadmin',
+      password: 'admin123',
+      fullName: 'Super Administrador Global',
+      email: 'superadmin@emitta.cloud',
+      role: 'SUPERADMIN',
+      branchCode: '001',
+      boxCode: '001',
+      branchName: 'Sede Global Multi-Empresa',
+      companyId: null,
+      createdAt: new Date().toISOString()
+    },
+    {
       id: 'usr_001',
       username: 'cajero1',
       password: '1234',
@@ -41,10 +54,52 @@ const INITIAL_DATA = {
       password: '1234',
       fullName: 'Ing. María Elena Solís',
       email: 'msolis@mitienda.com',
-      role: 'SUPERVISOR',
+      role: 'ADMIN_EMPRESA',
       branchCode: '001',
       boxCode: '002',
       branchName: 'Sucursal Matriz · Administración',
+      companyId: 'comp_default_01',
+      createdAt: new Date().toISOString()
+    }
+  ],
+  products: [
+    {
+      id: 'prod_001',
+      sku: 'PROD-01',
+      name: 'Servicio de Consultoría y Desarrollo TI',
+      description: 'Servicio técnico especializado mensual',
+      unitPrice: 120.00,
+      vatRate: 15,
+      companyId: 'comp_default_01',
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: 'prod_002',
+      sku: 'PROD-02',
+      name: 'Licencia de Software SaaS Mensual',
+      description: 'Acceso a plataforma en la nube',
+      unitPrice: 45.00,
+      vatRate: 15,
+      companyId: 'comp_default_01',
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: 'prod_003',
+      sku: 'PROD-03',
+      name: 'Mantenimiento Preventivo de Equipos',
+      description: 'Soporte técnico y revisión semestral',
+      unitPrice: 35.00,
+      vatRate: 15,
+      companyId: 'comp_default_01',
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: 'prod_004',
+      sku: 'PROD-04',
+      name: 'Capacitación en Facturación Electrónica',
+      description: 'Taller de entrenamiento para cajeros (Exento 0% IVA)',
+      unitPrice: 60.00,
+      vatRate: 0,
       companyId: 'comp_default_01',
       createdAt: new Date().toISOString()
     }
@@ -159,6 +214,37 @@ class JsonFileRepository {
     }
     writeDb(db);
     return invoice;
+  }
+
+  // --- PRODUCTOS / CATÁLOGO ---
+  async getProducts(companyId = null) {
+    const db = readDb();
+    if (!db.products) db.products = [];
+    if (!companyId) return db.products;
+    return db.products.filter(p => !p.companyId || p.companyId === companyId || p.isGlobal);
+  }
+
+  async saveProduct(product) {
+    const db = readDb();
+    if (!db.products) db.products = [];
+    const id = product.id || `prod_${Date.now()}`;
+    const toSave = { ...product, id, updatedAt: new Date().toISOString() };
+    const existingIndex = db.products.findIndex(p => p.id === id);
+    if (existingIndex >= 0) {
+      db.products[existingIndex] = { ...db.products[existingIndex], ...toSave };
+    } else {
+      db.products.push(toSave);
+    }
+    writeDb(db);
+    return toSave;
+  }
+
+  async deleteProduct(productId) {
+    const db = readDb();
+    if (!db.products) return { success: true };
+    db.products = db.products.filter(p => p.id !== productId);
+    writeDb(db);
+    return { success: true };
   }
 }
 

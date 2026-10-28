@@ -1,8 +1,10 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CreateInvoiceRequest, IdentificationType, InvoiceItem } from '../../../models/invoice.model';
 import { AppIconComponent } from '../app-icon/app-icon.component';
+import { ProductService } from '../../../services/product.service';
+import { Product } from '../../../models/product.model';
 
 @Component({
   selector: 'app-invoice-creator',
@@ -112,10 +114,19 @@ import { AppIconComponent } from '../app-icon/app-icon.component';
         <!-- 3. ITEMS DINAMICOS -->
         <div class="form-section">
           <div class="section-header-flex">
-            <span class="section-title">3. DETALLE DE PRODUCTOS O SERVICIOS</span>
-            <button type="button" class="btn-add-line" (click)="addItem()">
-              ＋ Agregar Producto o Servicio
-            </button>
+            <span class="section-title">3. DETALLE DE PRODUCTOS O SERVICIOS (BASE DE DATOS)</span>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <!-- Selector de productos desde MongoDB -->
+              <select *ngIf="availableProducts.length > 0" class="select-db-prod" (change)="onSelectProductFromDb($event)">
+                <option value="">🛒 Cargar desde Catálogo BD...</option>
+                <option *ngFor="let p of availableProducts" [value]="p.id">
+                  {{ p.sku }} - {{ p.name }} (\${{ p.unitPrice }} · {{ p.vatRate }}% IVA)
+                </option>
+              </select>
+              <button type="button" class="btn-add-line" (click)="addItem()">
+                ＋ Agregar Producto
+              </button>
+            </div>
           </div>
 
           <div class="table-container">
@@ -518,6 +529,20 @@ import { AppIconComponent } from '../app-icon/app-icon.component';
       padding-top: 18px;
       border-top: 1px solid var(--border-color);
     }
+    .select-db-prod {
+      padding: 6px 12px;
+      border: 1px solid #93c5fd;
+      border-radius: 6px;
+      background: #eff6ff;
+      color: #1e40af;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      outline: none;
+    }
+    .select-db-prod:hover {
+      background: #dbeafe;
+    }
     .spinner {
       width: 14px;
       height: 14px;
@@ -586,6 +611,9 @@ export class InvoiceCreatorComponent {
 
   paymentMethod = '20';
 
+  private readonly productService = inject(ProductService);
+  availableProducts: Product[] = [];
+
   subtotal15 = 0;
   subtotal0 = 0;
   totalDiscount = 0;
@@ -594,6 +622,48 @@ export class InvoiceCreatorComponent {
   totalAmount = 0;
 
   constructor() {
+    this.recalculate();
+    this.productService.products$.subscribe(list => {
+      this.availableProducts = list || [];
+    });
+  }
+
+  onSelectProductFromDb(event: any): void {
+    const prodId = event.target?.value;
+    if (!prodId) return;
+    const prod = this.availableProducts.find(p => p.id === prodId);
+    if (!prod) return;
+
+    // Si el primer item es el genérico por defecto, reemplazarlo
+    if (this.items.length === 1 && this.items[0].sku === 'PROD-01' && this.items[0].description === 'Producto o Servicio General') {
+      this.items[0] = {
+        sku: prod.sku,
+        description: prod.name,
+        quantity: 1,
+        unitPrice: prod.unitPrice,
+        discount: 0,
+        taxes: [{
+          taxCode: '2',
+          percentageCode: prod.vatRate === 15 ? '4' : '0',
+          rate: prod.vatRate
+        }]
+      };
+    } else {
+      this.items.push({
+        sku: prod.sku,
+        description: prod.name,
+        quantity: 1,
+        unitPrice: prod.unitPrice,
+        discount: 0,
+        taxes: [{
+          taxCode: '2',
+          percentageCode: prod.vatRate === 15 ? '4' : '0',
+          rate: prod.vatRate
+        }]
+      });
+    }
+
+    event.target.value = '';
     this.recalculate();
   }
 

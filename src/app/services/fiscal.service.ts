@@ -48,12 +48,8 @@ export class FiscalService {
         this._loading$.next(false);
         this._fiscalEntries$.next(entries);
         if (entries && entries.length > 0) {
-          const savedPoiId = localStorage.getItem('emitta_active_poi_id');
           const current = this._activeEntry$.getValue();
-          const targetPoiId = current?.pointOfIssueId || savedPoiId;
-          const match = targetPoiId ? entries.find(e => e.pointOfIssueId === targetPoiId) : null;
-          const chosen = match || entries[0];
-
+          const chosen = current || entries[0];
           this._activeEntry$.next(chosen);
           // Cargar certificados del emisor activo
           if (chosen.taxpayerId) {
@@ -74,11 +70,6 @@ export class FiscalService {
    */
   public selectActiveEntry(entry: FiscalConfigurationEntry): void {
     this._activeEntry$.next(entry);
-    try {
-      if (entry.pointOfIssueId) {
-        localStorage.setItem('emitta_active_poi_id', entry.pointOfIssueId);
-      }
-    } catch {}
   }
 
   public getTaxpayerId(): string {

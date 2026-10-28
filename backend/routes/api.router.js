@@ -1,6 +1,7 @@
 const companyService = require('../services/company.service');
 const authService = require('../services/auth.service');
 const invoiceService = require('../services/invoice.service');
+const productService = require('../services/product.service');
 const { isMongoConnected } = require('../config/database');
 
 function handleApiRoutes(req, res, parsedUrl, body) {
@@ -153,6 +154,48 @@ function handleApiRoutes(req, res, parsedUrl, body) {
       .then(saved => {
         res.writeHead(201);
         res.end(JSON.stringify({ success: true, invoice: saved }));
+      })
+      .catch(err => {
+        res.writeHead(400);
+        res.end(JSON.stringify({ success: false, error: err.message }));
+      });
+    return true;
+  }
+
+  // --- PRODUCTOS / CATÁLOGO EN BASE DE DATOS ---
+  if (pathname === '/api/pos/products' && method === 'GET') {
+    const companyId = parsedUrl.searchParams.get('companyId');
+    productService.getProducts(companyId)
+      .then(products => {
+        res.writeHead(200);
+        res.end(JSON.stringify(products));
+      })
+      .catch(err => {
+        res.writeHead(500);
+        res.end(JSON.stringify({ error: err.message }));
+      });
+    return true;
+  }
+
+  if (pathname === '/api/pos/products' && method === 'POST') {
+    productService.saveProduct(body || {})
+      .then(saved => {
+        res.writeHead(201);
+        res.end(JSON.stringify({ success: true, product: saved }));
+      })
+      .catch(err => {
+        res.writeHead(400);
+        res.end(JSON.stringify({ success: false, error: err.message }));
+      });
+    return true;
+  }
+
+  if (pathname.startsWith('/api/pos/products/') && method === 'DELETE') {
+    const productId = pathname.split('/').pop();
+    productService.deleteProduct(productId)
+      .then(result => {
+        res.writeHead(200);
+        res.end(JSON.stringify(result));
       })
       .catch(err => {
         res.writeHead(400);

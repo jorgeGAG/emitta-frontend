@@ -32,13 +32,10 @@ import { CompanyModalComponent } from '../../dumb/company-modal/company-modal.co
     CompanyModalComponent
   ],
   template: `
-    <!-- PANTALLA 1: Login de Acceso Protegido del Cajero -->
+    <!-- PANTALLA 1: Login de Acceso Protegido del Cajero (100% Limpio) -->
     <app-cashier-login
       *ngIf="!(isLoggedIn$ | async)"
-      [activeCompany]="activeCompany$ | async"
-      [systemStatus]="systemStatus$ | async"
       (loginSuccess)="onCashierLoginSuccess()"
-      (openCompanyModal)="openCompanies()"
     ></app-cashier-login>
 
     <!-- PANTALLA 2: Sistema Principal del Punto de Venta (POS) -->

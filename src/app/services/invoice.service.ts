@@ -106,19 +106,10 @@ export class InvoiceService {
   }
 
   private loadStoredInvoices(): DocumentView[] {
-    try {
-      const raw = sessionStorage.getItem(INVOICES_STORAGE_KEY);
-      return raw ? JSON.parse(raw) : [];
-    } catch {
-      return [];
-    }
+    return [];
   }
 
   private persistInvoices(invoices: DocumentView[]): void {
-    try {
-      sessionStorage.setItem(INVOICES_STORAGE_KEY, JSON.stringify(invoices));
-    } catch {}
-
     // Sincronizar automáticamente en la Base de Datos (MongoDB)
     const latest = invoices[0];
     if (latest && latest.id) {
@@ -132,7 +123,8 @@ export class InvoiceService {
         status: latest.status,
         accessKey: latest.accessKey,
         authorizationDate: latest.authorizedAt || new Date().toISOString(),
-        itemsCount: latest.items?.length || 1
+        itemsCount: latest.items?.length || 1,
+        items: latest.items || []
       }).subscribe({ error: () => {} });
     }
   }

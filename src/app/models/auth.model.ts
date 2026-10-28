@@ -1,10 +1,13 @@
+export type UserRole = 'SUPERADMIN' | 'ADMIN_EMPRESA' | 'CAJERO' | 'SUPERVISOR';
+
 export interface CashierUser {
   id: string;
   username: string;
   fullName: string;
   email: string;
-  role: 'CAJERO' | 'SUPERVISOR';
+  role: UserRole;
   branchCode: string;   // '001'
   boxCode: string;      // '001'
   branchName: string;   // 'Sucursal Matriz'
+  companyId?: string | null;
 }

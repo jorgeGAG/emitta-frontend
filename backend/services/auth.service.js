@@ -29,7 +29,18 @@ class AuthService {
       companyId: user.companyId
     };
 
-    return { success: true, user: safeUser };
+    // Si el usuario es de una empresa específica (no superadmin), activar automáticamente su empresa
+    let userCompany = null;
+    if (user.companyId) {
+      try {
+        const companyService = require('./company.service');
+        userCompany = await companyService.setActiveCompany(user.companyId);
+      } catch (err) {
+        console.warn('⚠️ No se pudo conmutar la empresa del usuario:', err.message);
+      }
+    }
+
+    return { success: true, user: safeUser, activeCompany: userCompany };
   }
 
   async getUsers(companyId = null) {

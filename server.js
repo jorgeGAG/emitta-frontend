@@ -182,8 +182,8 @@ async function startServer() {
     });
   });
 
-  server.listen(PORT, () => {
-    console.log(`🚀 Emitta POS v2 Server corriendo en puerto ${PORT}`);
+  server.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 Emitta POS v2 Server corriendo en http://localhost:${PORT}`);
   });
 }
 

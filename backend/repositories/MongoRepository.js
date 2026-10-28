@@ -72,6 +72,28 @@ class MongoRepository {
     return invoice;
   }
 
+  // --- PRODUCTOS / CATÁLOGO ---
+  async getProducts(companyId = null) {
+    const filter = companyId ? { $or: [{ companyId }, { isGlobal: true }] } : {};
+    return await this.db.collection('products').find(filter).sort({ name: 1 }).toArray();
+  }
+
+  async saveProduct(product) {
+    const id = product.id || `prod_${Date.now()}`;
+    const toSave = { ...product, id, updatedAt: new Date().toISOString() };
+    await this.db.collection('products').updateOne(
+      { id: toSave.id },
+      { $set: toSave },
+      { upsert: true }
+    );
+    return toSave;
+  }
+
+  async deleteProduct(productId) {
+    await this.db.collection('products').deleteOne({ id: productId });
+    return { success: true };
+  }
+
   // --- SEED INICIAL ---
   async seedIfEmpty() {
     try {
@@ -95,37 +117,80 @@ class MongoRepository {
         });
       }
 
-      const userCount = await this.db.collection('users').countDocuments();
-      if (userCount === 0) {
-        await this.db.collection('users').insertMany([
+      // Asegurar superadmin y usuarios
+      const existingSuperadmin = await this.db.collection('users').findOne({ username: 'superadmin' });
+      if (!existingSuperadmin) {
+        await this.db.collection('users').insertOne({
+          id: 'usr_super_01',
+          username: 'superadmin',
+          password: 'admin123',
+          fullName: 'Super Administrador Global',
+          email: 'superadmin@emitta.cloud',
+          role: 'SUPERADMIN',
+          branchCode: '001',
+          boxCode: '001',
+          branchName: 'Sede Global Multi-Empresa',
+          companyId: null, // No ligado a una sola empresa
+          createdAt: new Date().toISOString()
+        });
+        console.log('🌱 [DB] Superadministrador creado (superadmin / admin123)');
+      }
+
+      // Asegurar admin de empresa
+      const existingAdmin = await this.db.collection('users').findOne({ username: 'admin' });
+      if (existingAdmin && existingAdmin.role !== 'ADMIN_EMPRESA') {
+        await this.db.collection('users').updateOne(
+          { username: 'admin' },
+          { $set: { role: 'ADMIN_EMPRESA' } }
+        );
+      }
+
+      // Asegurar productos iniciales en la base de datos si está vacía
+      const prodCount = await this.db.collection('products').countDocuments();
+      if (prodCount === 0) {
+        await this.db.collection('products').insertMany([
           {
-            id: 'usr_001',
-            username: 'cajero1',
-            password: '1234',
-            fullName: 'Carlos Zambrano Loor',
-            email: 'czambrano@mitienda.com',
-            role: 'CAJERO',
-            branchCode: '001',
-            boxCode: '001',
-            branchName: 'Sucursal Matriz · Guayaquil',
+            id: 'prod_001',
+            sku: 'PROD-01',
+            name: 'Servicio de Consultoría y Desarrollo TI',
+            description: 'Servicio técnico especializado mensual',
+            unitPrice: 120.00,
+            vatRate: 15,
             companyId: 'comp_default_01',
             createdAt: new Date().toISOString()
           },
           {
-            id: 'usr_002',
-            username: 'admin',
-            password: '1234',
-            fullName: 'Ing. María Elena Solís',
-            email: 'msolis@mitienda.com',
-            role: 'SUPERVISOR',
-            branchCode: '001',
-            boxCode: '002',
-            branchName: 'Sucursal Matriz · Administración',
+            id: 'prod_002',
+            sku: 'PROD-02',
+            name: 'Licencia de Software SaaS Mensual',
+            description: 'Acceso a plataforma en la nube',
+            unitPrice: 45.00,
+            vatRate: 15,
+            companyId: 'comp_default_01',
+            createdAt: new Date().toISOString()
+          },
+          {
+            id: 'prod_003',
+            sku: 'PROD-03',
+            name: 'Mantenimiento Preventivo de Equipos',
+            description: 'Soporte técnico y revisión semestral',
+            unitPrice: 35.00,
+            vatRate: 15,
+            companyId: 'comp_default_01',
+            createdAt: new Date().toISOString()
+          },
+          {
+            id: 'prod_004',
+            sku: 'PROD-04',
+            name: 'Capacitación en Facturación Electrónica',
+            description: 'Taller de entrenamiento para cajeros (Exento 0% IVA)',
+            unitPrice: 60.00,
+            vatRate: 0,
             companyId: 'comp_default_01',
             createdAt: new Date().toISOString()
           }
         ]);
-        console.log('🌱 [DB] Usuarios y Empresa inicial sembrados con éxito.');
+        console.log('🌱 [DB] Productos iniciales sembrados en MongoDB Atlas.');
       }
     } catch (err) {
       console.warn('⚠️  [DB] Error en seed inicial:', err.message);

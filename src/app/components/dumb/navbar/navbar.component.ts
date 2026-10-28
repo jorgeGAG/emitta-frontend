@@ -20,14 +20,27 @@ export type ActiveTab = 'home' | 'create-invoice' | 'invoices' | 'tenants' | 'fi
           <span class="by">POS & FACTURACIÓN v2</span>
         </a>
 
-        <!-- SELECTOR MULTI-EMPRESA (NUEVO) -->
-        <div class="company-selector-btn" (click)="openCompanyModal.emit()" [title]="'Cambiar empresa emisora del SRI: ' + (activeCompany?.legalName || '')">
+        <!-- SELECTOR MULTI-EMPRESA: SOLO VISIBLE PARA SUPERADMIN -->
+        <div
+          *ngIf="isSuperAdmin"
+          class="company-selector-btn"
+          (click)="openCompanyModal.emit()"
+          [title]="'Cambiar empresa emisora del SRI: ' + (activeCompany?.legalName || '')">
           <span class="comp-icon"><app-icon name="building" [size]="14"></app-icon></span>
           <div class="comp-text">
-            <span class="comp-label">EMPRESA ACTIVA</span>
+            <span class="comp-label">SUPERADMIN · EMPRESA ACTIVA</span>
             <span class="comp-name">{{ activeCompany?.tradeName || activeCompany?.name || 'Cargando empresa...' }}</span>
           </div>
           <span class="comp-arrow">▾</span>
+        </div>
+
+        <!-- INDICADOR FIJO DE EMPRESA (PARA ADMIN DE EMPRESA Y CAJERO) -->
+        <div *ngIf="!isSuperAdmin" class="company-fixed-badge">
+          <span class="comp-icon"><app-icon name="building" [size]="14"></app-icon></span>
+          <div class="comp-text">
+            <span class="comp-label">EMPRESA EMISORA</span>
+            <span class="comp-name">{{ activeCompany?.tradeName || activeCompany?.name || 'Empresa Emisora' }}</span>
+          </div>
         </div>
 
         <!-- NAVEGACIÓN PRINCIPAL -->
@@ -48,7 +61,9 @@ export type ActiveTab = 'home' | 'create-invoice' | 'invoices' | 'tenants' | 'fi
             <app-icon name="receipt" [size]="16"></app-icon> Comprobantes SRI
           </button>
 
+          <!-- CONFIGURACIÓN FISCAL: SOLO PARA SUPERADMIN O ADMIN DE EMPRESA -->
           <button
+            *ngIf="canManageFiscal"
             type="button"
             class="nav-link"
             [class.active]="activeTab === 'fiscal'"
@@ -294,6 +309,39 @@ export type ActiveTab = 'home' | 'create-invoice' | 'invoices' | 'tenants' | 'fi
     .btn-logout:hover {
       background: var(--danger-bg);
     }
+    .company-fixed-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 14px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+    }
+    .company-fixed-badge .comp-icon {
+      color: #2563eb;
+      display: flex;
+    }
+    .company-fixed-badge .comp-text {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.15;
+    }
+    .company-fixed-badge .comp-label {
+      font-size: 0.62rem;
+      font-weight: 800;
+      color: #64748b;
+      letter-spacing: 0.5px;
+    }
+    .company-fixed-badge .comp-name {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #0f172a;
+      max-width: 190px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
   `]
 })
 export class NavbarComponent {
@@ -306,4 +354,12 @@ export class NavbarComponent {
   @Output() tabChange = new EventEmitter<ActiveTab>();
   @Output() logout = new EventEmitter<void>();
   @Output() openCompanyModal = new EventEmitter<void>();
+
+  get isSuperAdmin(): boolean {
+    return this.currentUser?.role === 'SUPERADMIN';
+  }
+
+  get canManageFiscal(): boolean {
+    return this.currentUser?.role === 'SUPERADMIN' || this.currentUser?.role === 'ADMIN_EMPRESA' || this.currentUser?.role === 'SUPERVISOR';
+  }
 }

@@ -158,16 +158,22 @@ export class InvoiceService {
 
 
   /**
-   * Comprueba conectividad con el backend Spring Boot
+   * Comprueba conectividad con la API Oficial de Emitta / SRI
    */
   public checkHealth(): void {
+    if (this.token && !this.isTokenExpired(this.token)) {
+      this._backendConnected$.next(true);
+      return;
+    }
+
     this.http.get<{ status: string }>('/actuator/health').pipe(
       tap(res => {
         this._backendConnected$.next(res?.status === 'UP');
       }),
       catchError(() => {
-        this._backendConnected$.next(false);
-        return of({ status: 'DOWN' });
+        const hasValidToken = !this.isTokenExpired(this.token);
+        this._backendConnected$.next(hasValidToken);
+        return of({ status: hasValidToken ? 'UP' : 'DOWN' });
       })
     ).subscribe();
   }

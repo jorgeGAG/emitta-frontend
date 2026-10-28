@@ -61,8 +61,8 @@ async function startServer() {
       return;
     }
 
-    // 3. Proxy Transparente hacia la API de Emitta (/api/v1/...)
-    if (req.url.startsWith('/api/v1') || req.url.startsWith('/api/')) {
+    // 3. Proxy Transparente hacia la API de Emitta (/api/v1/..., /actuator/...)
+    if (req.url.startsWith('/api/v1') || req.url.startsWith('/api/') || req.url.startsWith('/actuator')) {
       // Si es el endpoint de token y se solicita usar la empresa activa:
       companyService.getActiveCompany().then(activeCompany => {
         const targetHost = 'api-emitta.nexorf.dev';

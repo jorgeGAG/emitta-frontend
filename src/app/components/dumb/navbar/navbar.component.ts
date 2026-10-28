@@ -74,12 +74,13 @@ export type ActiveTab = 'home' | 'create-invoice' | 'invoices' | 'tenants' | 'fi
 
         <!-- 3. ACCIONES & PERFIL DE USUARIO -->
         <div class="user-actions-zone">
-          <!-- Indicador discreto de conexión en tiempo real -->
+          <!-- Indicador de conexión en tiempo real con la API Oficial de Facturación SRI -->
           <div
             class="live-status-indicator"
-            [title]="'Base de datos: ' + (systemStatus?.database || 'MongoDB Atlas') + ' · SRI Online'">
-            <span class="pulse-dot"></span>
-            <span class="status-label">SRI En línea</span>
+            [class.offline]="!backendConnected"
+            [title]="backendConnected ? 'Conexión activa con la API oficial de Facturación Electrónica (SRI)' : 'Sin conexión con la API oficial del SRI'">
+            <span class="pulse-dot" [class.dot-offline]="!backendConnected"></span>
+            <span class="status-label">{{ backendConnected ? 'API SRI Conectada' : 'API Desconectada' }}</span>
           </div>
 
           <div class="nav-divider"></div>
@@ -275,11 +276,17 @@ export type ActiveTab = 'home' | 'create-invoice' | 'invoices' | 'tenants' | 'fi
       display: flex;
       align-items: center;
       gap: 6px;
-      padding: 4px 9px;
+      padding: 4px 10px;
       background: #f0fdf4;
       border: 1px solid #dcfce7;
       border-radius: 14px;
       cursor: help;
+      transition: all 0.2s ease;
+    }
+
+    .live-status-indicator.offline {
+      background: #fef2f2;
+      border-color: #fecaca;
     }
 
     .pulse-dot {
@@ -290,11 +297,20 @@ export type ActiveTab = 'home' | 'create-invoice' | 'invoices' | 'tenants' | 'fi
       box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
     }
 
+    .pulse-dot.dot-offline {
+      background: #ef4444;
+      box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.25);
+    }
+
     .status-label {
       font-size: 0.72rem;
       font-weight: 700;
       color: #166534;
       letter-spacing: 0.2px;
+    }
+
+    .live-status-indicator.offline .status-label {
+      color: #991b1b;
     }
 
     .nav-divider {

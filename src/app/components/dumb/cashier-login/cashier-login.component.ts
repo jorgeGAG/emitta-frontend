@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Output, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { AppIconComponent } from '../app-icon/app-icon.component';
 import { AuthService } from '../../../services/auth.service';
 
@@ -237,6 +238,7 @@ import { AuthService } from '../../../services/auth.service';
 })
 export class CashierLoginComponent {
   private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
 
   @Output() loginSuccess = new EventEmitter<void>();
@@ -269,6 +271,7 @@ export class CashierLoginComponent {
         if (res.success) {
           this.errorMessage = null;
           this.loginSuccess.emit();
+          this.router.navigate(['/pos']);
         } else {
           this.errorMessage = res.error || 'Usuario o contraseña incorrecta.';
         }

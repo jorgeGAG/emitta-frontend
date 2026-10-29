@@ -1,10 +1,10 @@
 import { Component } from '@angular/core';
-import { DashboardContainerComponent } from './components/smart/dashboard-container/dashboard-container.component';
+import { RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [DashboardContainerComponent],
+  imports: [RouterOutlet],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })

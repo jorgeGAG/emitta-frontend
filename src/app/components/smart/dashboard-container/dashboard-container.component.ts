@@ -1,5 +1,6 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { InvoiceService } from '../../../services/invoice.service';
 import { AuthService } from '../../../services/auth.service';
 import { FiscalService } from '../../../services/fiscal.service';
@@ -13,7 +14,6 @@ import { KpiCardsComponent } from '../../dumb/kpi-cards/kpi-cards.component';
 import { InvoiceCreatorComponent } from '../../dumb/invoice-creator/invoice-creator.component';
 import { DocumentRegistryComponent } from '../../dumb/document-registry/document-registry.component';
 import { RideViewerModalComponent } from '../../dumb/ride-viewer-modal/ride-viewer-modal.component';
-import { CashierLoginComponent } from '../../dumb/cashier-login/cashier-login.component';
 import { FiscalSetupViewComponent } from '../../dumb/fiscal-setup-view/fiscal-setup-view.component';
 import { CompanyModalComponent } from '../../dumb/company-modal/company-modal.component';
 import { AppIconComponent } from '../../dumb/app-icon/app-icon.component';
@@ -28,19 +28,12 @@ import { AppIconComponent } from '../../dumb/app-icon/app-icon.component';
     InvoiceCreatorComponent,
     DocumentRegistryComponent,
     RideViewerModalComponent,
-    CashierLoginComponent,
     FiscalSetupViewComponent,
     CompanyModalComponent,
     AppIconComponent
   ],
   template: `
-    <!-- PANTALLA 1: Login de Acceso Protegido del Cajero (100% Limpio) -->
-    <app-cashier-login
-      *ngIf="!(isLoggedIn$ | async)"
-      (loginSuccess)="onCashierLoginSuccess()"
-    ></app-cashier-login>
-
-    <!-- PANTALLA 2: Sistema Principal del Punto de Venta (POS) -->
+    <!-- Sistema Principal del Punto de Venta (POS) - Protegido por authGuard -->
     <div class="emitta-app-shell" *ngIf="isLoggedIn$ | async">
       <!-- Barra superior con estado de API y perfil del cajero -->
       <app-navbar
@@ -573,6 +566,7 @@ export class DashboardContainerComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly fiscalService = inject(FiscalService);
   private readonly companyService = inject(CompanyService);
+  private readonly router = inject(Router);
 
   activeTab: ActiveTab = 'create-invoice';
   showCompanyModal = false;
@@ -687,6 +681,7 @@ export class DashboardContainerComponent implements OnInit {
     this.invoiceService.stopAllPolling();
     this.authService.logout();
     this.invoiceService.clearSelection();
+    this.router.navigate(['/login']);
   }
 
   onTabChange(tab: ActiveTab, resetHighlight: boolean = true): void {

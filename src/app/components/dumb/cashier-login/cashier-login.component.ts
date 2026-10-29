@@ -62,12 +62,9 @@ import { AuthService } from '../../../services/auth.service';
             </span>
           </div>
 
-          <!-- Campo: Contraseña con Mínimo 6 Caracteres y Visibilidad Opcional -->
+          <!-- Campo: Contraseña con Visibilidad Opcional -->
           <div class="form-group">
-            <div class="label-row">
-              <label for="password">Contraseña</label>
-              <span class="label-hint">Mínimo 6 caracteres</span>
-            </div>
+            <label for="password">Contraseña</label>
             <div class="input-wrapper" [class.input-error]="password && !isPasswordValid">
               <span class="input-icon"><app-icon name="lock" [size]="15"></app-icon></span>
               <input
@@ -98,9 +95,6 @@ import { AuthService } from '../../../services/auth.service';
                 </svg>
               </button>
             </div>
-            <span class="field-error" *ngIf="password && !isPasswordValid">
-              ⚠️ La contraseña debe tener al menos 6 caracteres (llevas {{ password.length }})
-            </span>
           </div>
 
           <!-- Botón de Envío -->
@@ -110,31 +104,8 @@ import { AuthService } from '../../../services/auth.service';
           </button>
         </form>
 
-        <!-- Accesos Rápidos de Prueba -->
-        <div class="demo-accounts-box">
-          <span class="demo-title">Cuentas de demostración (clic para cargar):</span>
-          <div class="demo-chips">
-            <button
-              type="button"
-              class="demo-chip"
-              (click)="fillAccount('msolis@mitienda.com', 'admin123')"
-              [disabled]="loading"
-            >
-              👑 Administrador
-            </button>
-            <button
-              type="button"
-              class="demo-chip"
-              (click)="fillAccount('czambrano@mitienda.com', 'cajero123')"
-              [disabled]="loading"
-            >
-              🛒 Cajero
-            </button>
-          </div>
-        </div>
-
         <div class="footer-note">
-          <span>Emitta POS Cloud · Encriptación Segura de Contraseñas (Scrypt)</span>
+          <span>Emitta POS Cloud · Acceso Protegido</span>
         </div>
       </div>
     </div>
@@ -309,42 +280,9 @@ import { AuthService } from '../../../services/auth.service';
       opacity: 0.55;
       cursor: not-allowed;
     }
-    .demo-accounts-box {
-      margin-top: 20px;
-      padding-top: 16px;
-      border-top: 1px dashed #e2e8f0;
-      text-align: center;
-    }
-    .demo-title {
-      font-size: 0.73rem;
-      color: #64748b;
-      display: block;
-      margin-bottom: 8px;
-    }
-    .demo-chips {
-      display: flex;
-      justify-content: center;
-      gap: 8px;
-    }
-    .demo-chip {
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 20px;
-      padding: 4px 12px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: #334155;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .demo-chip:hover:not(:disabled) {
-      background: #eff6ff;
-      border-color: #bfdbfe;
-      color: #1d4ed8;
-    }
     .footer-note {
       text-align: center;
-      margin-top: 16px;
+      margin-top: 22px;
       font-size: 0.74rem;
       color: #94a3b8;
     }
@@ -386,13 +324,6 @@ export class CashierLoginComponent {
 
   get isFormValid(): boolean {
     return this.isEmailValid && this.isPasswordValid;
-  }
-
-  fillAccount(email: string, pass: string): void {
-    this.email = email;
-    this.password = pass;
-    this.errorMessage = null;
-    this.cdr.detectChanges();
   }
 
   onSubmit(): void {

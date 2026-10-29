@@ -182,14 +182,22 @@ class MongoRepository {
         }
       }
 
-      // Asegurar admin de empresa
-      const existingAdmin = await this.db.collection('users').findOne({ username: 'admin' });
-      if (existingAdmin && existingAdmin.role !== 'ADMIN_EMPRESA') {
-        await this.db.collection('users').updateOne(
-          { username: 'admin' },
-          { $set: { role: 'ADMIN_EMPRESA' } }
-        );
-      }
+      // Asegurar administrador con admin@mitienda.com y passwordPrueba encriptado
+      const adminPassHash = hashPassword('passwordPrueba');
+      await this.db.collection('users').updateOne(
+        { $or: [{ username: 'admin' }, { email: 'admin@mitienda.com' }, { email: 'msolis@mitienda.com' }] },
+        {
+          $set: {
+            username: 'admin',
+            email: 'admin@mitienda.com',
+            password: adminPassHash,
+            role: 'ADMIN_EMPRESA',
+            fullName: 'Administrador General'
+          }
+        },
+        { upsert: true }
+      );
+      console.log('🔒 [DB] Usuario administrador configurado con admin@mitienda.com y passwordPrueba (Encriptado con scrypt).');
     } catch (err) {
       console.warn('⚠️  [DB] Error en seed inicial:', err.message);
     }

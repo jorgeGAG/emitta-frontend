@@ -2,6 +2,7 @@ const companyService = require('../services/company.service');
 const authService = require('../services/auth.service');
 const invoiceService = require('../services/invoice.service');
 const productService = require('../services/product.service');
+const { validateLoginPayload } = require('../middlewares/auth.middleware');
 const { isMongoConnected, getLastMongoError } = require('../config/database');
 
 function handleApiRoutes(req, res, parsedUrl, body) {
@@ -101,11 +102,22 @@ function handleApiRoutes(req, res, parsedUrl, body) {
   }
 
   if (pathname === '/api/pos/auth/login' && method === 'POST') {
-    const identifier = (body?.email || body?.username || '').trim();
-    console.log(`🔐 [AUTH] Solicitud de login para: "${identifier}"`);
-    authService.login(identifier, body?.password)
+    // 1. Ejecutar Middleware de Validación
+    const validation = validateLoginPayload(body);
+    if (!validation.valid) {
+      console.warn(`⚠️ [AUTH MIDDLEWARE] Validación denegada: ${validation.error}`);
+      res.writeHead(400, {
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Access-Control-Allow-Origin': '*'
+      });
+      res.end(JSON.stringify({ success: false, error: validation.error }));
+      return true;
+    }
+
+    console.log(`🔐 [AUTH] Solicitud de login para: "${validation.cleanEmail}"`);
+    authService.login(validation.cleanEmail, validation.password)
       .then(result => {
-        console.log(`🔑 [AUTH] Resultado para "${identifier}": ${result.success ? 'AUTORIZADO (200)' : 'DENEGADO (401) - ' + result.error}`);
+        console.log(`🔑 [AUTH] Resultado para "${validation.cleanEmail}": ${result.success ? 'AUTORIZADO (200)' : 'DENEGADO (401) - ' + result.error}`);
         res.writeHead(result.success ? 200 : 401, {
           'Content-Type': 'application/json; charset=UTF-8',
           'Access-Control-Allow-Origin': '*'

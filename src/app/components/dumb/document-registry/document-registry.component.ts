@@ -269,13 +269,13 @@ import { AppIconComponent } from '../app-icon/app-icon.component';
       box-shadow: inset 4px 0 0 #2563eb;
     }
     .row-highlighted {
-      background: #f0fdf4 !important;
-      box-shadow: inset 4px 0 0 #10b981;
+      background: #f0f7ff !important;
+      box-shadow: inset 4px 0 0 #2563eb;
       animation: highlightPulse 1.8s ease-out;
     }
     .row-highlighted.row-selected {
       background: #eff6ff !important;
-      box-shadow: inset 4px 0 0 #2563eb;
+      box-shadow: inset 4px 0 0 #1d4ed8;
     }
     .seq-badge-row {
       display: flex;
@@ -286,10 +286,10 @@ import { AppIconComponent } from '../app-icon/app-icon.component';
     .new-emitted-badge {
       display: inline-flex;
       align-items: center;
-      gap: 3px;
-      background: #dcfce7;
-      color: #15803d;
-      border: 1px solid #86efac;
+      gap: 4px;
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
       padding: 1px 7px;
       border-radius: 12px;
       font-size: 10px;
@@ -298,10 +298,10 @@ import { AppIconComponent } from '../app-icon/app-icon.component';
     }
     @keyframes highlightPulse {
       0% {
-        background-color: #bbf7d0;
+        background-color: #dbeafe;
       }
       100% {
-        background-color: #f0fdf4;
+        background-color: #f0f7ff;
       }
     }
     .seq-group {

@@ -578,6 +578,7 @@ export class DashboardContainerComponent implements OnInit {
   showSuccessModal = false;
   lastEmittedInvoice: DocumentView | null = null;
   highlightedInvoiceId: string | null = null;
+  private highlightTimer: ReturnType<typeof setTimeout> | null = null;
   successToastMessage: string | null = null;
   companies: Company[] = [];
 
@@ -677,7 +678,10 @@ export class DashboardContainerComponent implements OnInit {
     this.invoiceService.clearSelection();
   }
 
-  onTabChange(tab: ActiveTab): void {
+  onTabChange(tab: ActiveTab, resetHighlight: boolean = true): void {
+    if (resetHighlight) {
+      this.clearInvoiceHighlight();
+    }
     this.activeTab = tab;
     window.scrollTo({ top: 0, behavior: 'smooth' });
     if (tab === 'fiscal') {
@@ -693,7 +697,6 @@ export class DashboardContainerComponent implements OnInit {
       if (res && res.status !== 'ERROR' && res.status !== 'ADMISSION_SATURATED') {
         const doc = res.document || this.invoiceService.getInvoicesSnapshot()[0] || null;
         this.lastEmittedInvoice = doc;
-        this.highlightedInvoiceId = doc?.id || null;
         this.showSuccessModal = true;
         this.successToastMessage = `¡Factura ${doc?.sequential || ''} emitida con éxito por $${(doc?.total || request.expectedTotal).toFixed(2)} USD!`;
         creator?.clearForm();
@@ -708,20 +711,40 @@ export class DashboardContainerComponent implements OnInit {
 
   closeSuccessModal(): void {
     this.showSuccessModal = false;
+    this.clearInvoiceHighlight();
   }
 
   viewEmittedInvoices(): void {
     this.showSuccessModal = false;
     this.highlightedInvoiceId = this.lastEmittedInvoice?.id || null;
-    this.onTabChange('invoices');
+    this.onTabChange('invoices', false);
+    this.scheduleHighlightClear();
   }
 
   inspectEmittedInvoice(): void {
     this.showSuccessModal = false;
     this.highlightedInvoiceId = this.lastEmittedInvoice?.id || null;
-    this.onTabChange('invoices');
+    this.onTabChange('invoices', false);
     if (this.lastEmittedInvoice?.id) {
       this.invoiceService.selectInvoice(this.lastEmittedInvoice.id);
+    }
+    this.scheduleHighlightClear();
+  }
+
+  private scheduleHighlightClear(): void {
+    if (this.highlightTimer) {
+      clearTimeout(this.highlightTimer);
+    }
+    this.highlightTimer = setTimeout(() => {
+      this.clearInvoiceHighlight();
+    }, 8000);
+  }
+
+  private clearInvoiceHighlight(): void {
+    this.highlightedInvoiceId = null;
+    if (this.highlightTimer) {
+      clearTimeout(this.highlightTimer);
+      this.highlightTimer = null;
     }
   }
 
@@ -734,6 +757,7 @@ export class DashboardContainerComponent implements OnInit {
   }
 
   onInvoiceSelect(id: string): void {
+    this.clearInvoiceHighlight();
     this.invoiceService.selectInvoice(id);
   }
 

@@ -188,16 +188,6 @@ import { AppIconComponent } from '../../dumb/app-icon/app-icon.component';
               <span class="r-label">RUC / Cédula:</span>
               <span class="r-val">{{ inv.buyer.identification || '9999999999999' }}</span>
             </div>
-            <div class="receipt-row">
-              <span class="r-label">Estado SRI:</span>
-              <span
-                class="status-badge"
-                [class.authorized]="inv.status === 'AUTHORIZED'"
-                [class.queued]="inv.status === 'QUEUED' || inv.status === 'GENERATING'"
-                [class.rejected]="inv.status === 'REJECTED' || inv.status === 'NOT_AUTHORIZED'">
-                {{ getInvoiceStatusLabel(inv.status) }}
-              </span>
-            </div>
             <div class="receipt-divider"></div>
             <div class="receipt-row total-row">
               <span class="r-label total-label">TOTAL COBRADO:</span>

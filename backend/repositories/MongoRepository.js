@@ -138,23 +138,48 @@ class MongoRepository {
         });
       }
 
-      // Asegurar superadmin y usuarios
+      // Asegurar superadmin y usuarios con contraseñas encriptadas
+      const { hashPassword, needsRehash } = require('../config/password');
+
       const existingSuperadmin = await this.db.collection('users').findOne({ username: 'superadmin' });
       if (!existingSuperadmin) {
         await this.db.collection('users').insertOne({
           id: 'usr_super_01',
           username: 'superadmin',
-          password: 'admin123',
+          password: hashPassword('admin123'),
           fullName: 'Super Administrador Global',
           email: 'superadmin@emitta.cloud',
           role: 'SUPERADMIN',
           branchCode: '001',
           boxCode: '001',
           branchName: 'Sede Global Multi-Empresa',
-          companyId: null, // No ligado a una sola empresa
+          companyId: null,
           createdAt: new Date().toISOString()
         });
-        console.log('🌱 [DB] Superadministrador creado (superadmin / admin123)');
+        console.log('🌱 [DB] Superadministrador creado (superadmin@emitta.cloud / admin123 - Encriptado)');
+      }
+
+      // Asegurar que todos los usuarios en MongoDB tengan contraseña encriptada (scrypt) y mínimo 6 caracteres
+      const allUsers = await this.db.collection('users').find({}).toArray();
+      for (const u of allUsers) {
+        if (needsRehash(u.password)) {
+          // Si la contraseña previa era menor a 6 caracteres (ej: '1234'), asignar 'admin123' o 'cajero123'
+          let plain = (u.password && u.password.length >= 6) ? u.password : 'admin123';
+          if (u.username === 'cajero1' && (!u.password || u.password.length < 6)) {
+            plain = 'cajero123';
+          }
+          const defaultEmail = u.email || (u.username === 'admin' ? 'msolis@mitienda.com' : (u.username === 'cajero1' ? 'czambrano@mitienda.com' : `${u.username}@mitienda.com`));
+          await this.db.collection('users').updateOne(
+            { _id: u._id },
+            { 
+              $set: { 
+                password: hashPassword(plain),
+                email: defaultEmail
+              } 
+            }
+          );
+          console.log(`🔒 [DB] Contraseña de ${u.username} (${defaultEmail}) encriptada con scrypt.`);
+        }
       }
 
       // Asegurar admin de empresa

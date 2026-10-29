@@ -77,9 +77,11 @@ export class AuthService {
     }
   }
 
-  public login(username: string, pass: string): Observable<{ success: boolean; error?: string }> {
+  public login(email: string, pass: string): Observable<{ success: boolean; error?: string }> {
+    const cleanEmail = (email || '').trim().toLowerCase();
     return this.http.post<LoginResponse>('/api/pos/auth/login', {
-      username: (username || '').trim(),
+      email: cleanEmail,
+      username: cleanEmail,
       password: pass
     }).pipe(
       map(res => {

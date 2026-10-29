@@ -1,0 +1,7 @@
+{
+  "name": "emitta-backend-runtime",
+  "version": "1.0.0",
+  "dependencies": {
+    "mongodb": "^6.21.0"
+  }
+}

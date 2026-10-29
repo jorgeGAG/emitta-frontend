@@ -28,7 +28,12 @@ async function connectToMongo() {
   }
 
   try {
-    const { MongoClient } = require('mongodb');
+    let MongoClient;
+    try {
+      MongoClient = require('mongodb').MongoClient;
+    } catch {
+      MongoClient = require('../node_modules/mongodb').MongoClient;
+    }
     console.log('🔄 [DB] Conectando a MongoDB Atlas...');
     const client = new MongoClient(uri, {
       serverSelectionTimeoutMS: 8000,

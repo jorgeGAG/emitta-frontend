@@ -189,9 +189,13 @@ import { AppIconComponent } from '../../dumb/app-icon/app-icon.component';
               <span class="r-val">{{ inv.buyer.identification || '9999999999999' }}</span>
             </div>
             <div class="receipt-row">
-              <span class="r-label">Estado:</span>
-              <span class="r-val status-badge" [class.authorized]="inv.status === 'AUTHORIZED'">
-                ● {{ inv.status === 'AUTHORIZED' ? 'Autorizado por SRI' : (inv.status || 'Registrado') }}
+              <span class="r-label">Estado SRI:</span>
+              <span
+                class="status-badge"
+                [class.authorized]="inv.status === 'AUTHORIZED'"
+                [class.queued]="inv.status === 'QUEUED' || inv.status === 'GENERATING'"
+                [class.rejected]="inv.status === 'REJECTED' || inv.status === 'NOT_AUTHORIZED'">
+                {{ getInvoiceStatusLabel(inv.status) }}
               </span>
             </div>
             <div class="receipt-divider"></div>
@@ -209,7 +213,7 @@ import { AppIconComponent } from '../../dumb/app-icon/app-icon.component';
               <app-icon name="receipt" [size]="15"></app-icon> Ver en Comprobantes
             </button>
             <button type="button" class="btn-pos-action outline" *ngIf="lastEmittedInvoice" (click)="inspectEmittedInvoice()">
-              <app-icon name="eye" [size]="15"></app-icon> Ver Factura / RIDE
+              <app-icon name="eye" [size]="15"></app-icon> Ver Detalle
             </button>
           </div>
         </div>
@@ -357,17 +361,32 @@ import { AppIconComponent } from '../../dumb/app-icon/app-icon.component';
       border: 1px solid #bfdbfe;
     }
     .status-badge {
-      font-size: 0.72rem;
+      font-size: 0.74rem;
       font-weight: 700;
-      color: #b45309;
-      background: #fefce8;
-      padding: 2px 7px;
-      border-radius: 4px;
+      color: #92400e;
+      background: #fef3c7;
+      border: 1px solid #fde68a;
+      padding: 3px 8px;
+      border-radius: 5px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.2s ease;
     }
     .status-badge.authorized {
       color: #166534;
       background: #f0fdf4;
-      border: 1px solid #bbf7d0;
+      border-color: #bbf7d0;
+    }
+    .status-badge.queued {
+      color: #92400e;
+      background: #fef3c7;
+      border-color: #fde68a;
+    }
+    .status-badge.rejected {
+      color: #991b1b;
+      background: #fef2f2;
+      border-color: #fecaca;
     }
     .receipt-divider {
       height: 1px;
@@ -612,6 +631,37 @@ export class DashboardContainerComponent implements OnInit {
         this.fiscalService.loadFiscalConfiguration(token).subscribe();
       }
     });
+
+    // Mantener sincronizado lastEmittedInvoice reactivamente con el polling de invoices$
+    this.invoices$.subscribe(invoices => {
+      if (this.lastEmittedInvoice) {
+        const found = invoices.find(inv => inv.id === this.lastEmittedInvoice?.id);
+        if (found && found.status !== this.lastEmittedInvoice.status) {
+          this.lastEmittedInvoice = found;
+          if (found.status === 'AUTHORIZED') {
+            this.successToastMessage = `¡Factura ${found.sequential} autorizada exitosamente por el SRI!`;
+          }
+        }
+      }
+    });
+  }
+
+  getInvoiceStatusLabel(status: string | undefined): string {
+    switch (status) {
+      case 'AUTHORIZED':
+        return '● Autorizado por el SRI';
+      case 'QUEUED':
+        return '⏳ En cola de emisión (SRI)...';
+      case 'GENERATING':
+        return '⏳ Generando firma digital...';
+      case 'SIGNED':
+        return '● Firmado electrónicamente';
+      case 'REJECTED':
+      case 'NOT_AUTHORIZED':
+        return '✖ No autorizado por el SRI';
+      default:
+        return `● ${status || 'En proceso'}`;
+    }
   }
 
   openCompanies(): void {

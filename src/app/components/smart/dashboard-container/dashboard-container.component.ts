@@ -122,6 +122,7 @@ import { AppIconComponent } from '../../dumb/app-icon/app-icon.component';
           <app-document-registry
             [invoices]="(invoices$ | async) ?? []"
             [selectedId]="(selectedInvoice$ | async)?.id || null"
+            [highlightedId]="highlightedInvoiceId"
             (selectInvoice)="onInvoiceSelect($event)"
             (downloadOfficialPdf)="onDownloadOfficialPdf($event)"
             (downloadOfficialXml)="onDownloadOfficialXml($event)"
@@ -576,6 +577,7 @@ export class DashboardContainerComponent implements OnInit {
   showCompanyModal = false;
   showSuccessModal = false;
   lastEmittedInvoice: DocumentView | null = null;
+  highlightedInvoiceId: string | null = null;
   successToastMessage: string | null = null;
   companies: Company[] = [];
 
@@ -691,6 +693,7 @@ export class DashboardContainerComponent implements OnInit {
       if (res && res.status !== 'ERROR' && res.status !== 'ADMISSION_SATURATED') {
         const doc = res.document || this.invoiceService.getInvoicesSnapshot()[0] || null;
         this.lastEmittedInvoice = doc;
+        this.highlightedInvoiceId = doc?.id || null;
         this.showSuccessModal = true;
         this.successToastMessage = `¡Factura ${doc?.sequential || ''} emitida con éxito por $${(doc?.total || request.expectedTotal).toFixed(2)} USD!`;
         creator?.clearForm();
@@ -709,11 +712,14 @@ export class DashboardContainerComponent implements OnInit {
 
   viewEmittedInvoices(): void {
     this.showSuccessModal = false;
+    this.highlightedInvoiceId = this.lastEmittedInvoice?.id || null;
     this.onTabChange('invoices');
   }
 
   inspectEmittedInvoice(): void {
     this.showSuccessModal = false;
+    this.highlightedInvoiceId = this.lastEmittedInvoice?.id || null;
+    this.onTabChange('invoices');
     if (this.lastEmittedInvoice?.id) {
       this.invoiceService.selectInvoice(this.lastEmittedInvoice.id);
     }

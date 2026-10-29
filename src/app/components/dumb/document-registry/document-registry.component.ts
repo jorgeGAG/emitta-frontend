@@ -64,10 +64,18 @@ import { AppIconComponent } from '../app-icon/app-icon.component';
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let doc of filteredInvoices()" [class.row-selected]="doc.id === selectedId">
+            <tr
+              *ngFor="let doc of filteredInvoices()"
+              [class.row-selected]="doc.id === selectedId"
+              [class.row-highlighted]="doc.id === highlightedId">
               <td>
                 <div class="seq-group">
-                  <span class="seq-badge">{{ doc.sequential }}</span>
+                  <div class="seq-badge-row">
+                    <span class="seq-badge">{{ doc.sequential }}</span>
+                    <span class="new-emitted-badge" *ngIf="doc.id === highlightedId">
+                      <app-icon name="check" [size]="10"></app-icon> Recién emitida
+                    </span>
+                  </div>
                   <span class="uuid-label">{{ doc.id.slice(0, 8) }}...</span>
                 </div>
               </td>
@@ -258,6 +266,43 @@ import { AppIconComponent } from '../app-icon/app-icon.component';
     }
     .row-selected {
       background: #eff6ff !important;
+      box-shadow: inset 4px 0 0 #2563eb;
+    }
+    .row-highlighted {
+      background: #f0fdf4 !important;
+      box-shadow: inset 4px 0 0 #10b981;
+      animation: highlightPulse 1.8s ease-out;
+    }
+    .row-highlighted.row-selected {
+      background: #eff6ff !important;
+      box-shadow: inset 4px 0 0 #2563eb;
+    }
+    .seq-badge-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .new-emitted-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      background: #dcfce7;
+      color: #15803d;
+      border: 1px solid #86efac;
+      padding: 1px 7px;
+      border-radius: 12px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+    @keyframes highlightPulse {
+      0% {
+        background-color: #bbf7d0;
+      }
+      100% {
+        background-color: #f0fdf4;
+      }
     }
     .seq-group {
       display: flex;
@@ -449,6 +494,7 @@ export class DocumentRegistryComponent {
   // RETO 4: Dumb Component puro conectado exclusivamente por @Input y @Output
   @Input() invoices: DocumentView[] | null = [];
   @Input() selectedId: string | null = null;
+  @Input() highlightedId: string | null = null;
   @Output() selectInvoice = new EventEmitter<string>();
   @Output() downloadOfficialPdf = new EventEmitter<string>();
   @Output() downloadOfficialXml = new EventEmitter<string>();

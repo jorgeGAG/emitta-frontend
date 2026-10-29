@@ -27,8 +27,8 @@ export class InvoiceService {
   private readonly http = inject(HttpClient);
   private readonly apiBase = API_CONFIG.baseUrl;
 
-  // Estado Reactivo Privado (BehaviorSubject)
-  private readonly _invoices$ = new BehaviorSubject<DocumentView[]>(this.loadStoredInvoices());
+  // Estado Reactivo Privado (BehaviorSubject) - Directo de Base de Datos
+  private readonly _invoices$ = new BehaviorSubject<DocumentView[]>([]);
   private readonly _selectedInvoice$ = new BehaviorSubject<DocumentView | null>(null);
   private readonly _loading$ = new BehaviorSubject<boolean>(false);
   private readonly _error$ = new BehaviorSubject<string | null>(null);
@@ -103,46 +103,20 @@ export class InvoiceService {
             ivaAmount: inv.taxAmount || 0,
             total: inv.total || 0
           }));
-          if (mapped.length > 0) {
-            this._invoices$.next(mapped);
-            this.recalculateMetrics(mapped);
-            try { sessionStorage.setItem(INVOICES_STORAGE_KEY, JSON.stringify(mapped)); } catch {}
-          } else {
-            const fallback = this.loadStoredInvoices();
-            if (fallback.length > 0 && this._invoices$.getValue().length === 0) {
-              this._invoices$.next(fallback);
-              this.recalculateMetrics(fallback);
-            }
-          }
+          this._invoices$.next(mapped);
+          this.recalculateMetrics(mapped);
+          try { sessionStorage.removeItem(INVOICES_STORAGE_KEY); } catch {}
         }
       }),
       catchError(() => {
-        const fallback = this.loadStoredInvoices();
-        if (fallback.length > 0 && this._invoices$.getValue().length === 0) {
-          this._invoices$.next(fallback);
-          this.recalculateMetrics(fallback);
-        }
+        this._invoices$.next([]);
+        this.recalculateMetrics([]);
         return of([]);
       })
     ).subscribe();
   }
 
-  private loadStoredInvoices(): DocumentView[] {
-    try {
-      const raw = sessionStorage.getItem(INVOICES_STORAGE_KEY);
-      if (raw) {
-        return JSON.parse(raw);
-      }
-    } catch {}
-    return [];
-  }
-
   private persistInvoices(invoices: DocumentView[]): void {
-    // Sincronizar en sessionStorage
-    try {
-      sessionStorage.setItem(INVOICES_STORAGE_KEY, JSON.stringify(invoices));
-    } catch {}
-
     // Sincronizar automáticamente en la Base de Datos (MongoDB)
     const latest = invoices[0];
     if (latest && latest.id) {

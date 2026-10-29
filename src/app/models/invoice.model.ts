@@ -51,6 +51,11 @@ export interface CreateInvoiceResponse {
   created: boolean;
 }
 
+export interface CreateInvoiceResult extends CreateInvoiceResponse {
+  document?: DocumentView;
+  error?: string;
+}
+
 export interface DocumentView {
   id: string;
   status: 'QUEUED' | 'GENERATING' | 'SIGNED' | 'AUTHORIZED' | 'NOT_AUTHORIZED' | string;

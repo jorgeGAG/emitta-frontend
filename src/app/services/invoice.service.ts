@@ -6,6 +6,7 @@ import {
   BillingMetrics,
   CreateInvoiceRequest,
   CreateInvoiceResponse,
+  CreateInvoiceResult,
   DocumentView
 } from '../models/invoice.model';
 import { RideJob } from '../models/fiscal.model';
@@ -67,6 +68,10 @@ export class InvoiceService {
     this.checkHealth();
     this.authenticateAndLoadRealDocuments();
     this.loadInvoicesFromDatabase();
+  }
+
+  public getInvoicesSnapshot(): DocumentView[] {
+    return this._invoices$.getValue();
   }
 
   public loadInvoicesFromDatabase(companyId?: string): void {
@@ -221,7 +226,7 @@ export class InvoiceService {
    * Emite una factura electrónica enviándola directamente a la API Spring Boot (POST /api/v1/invoices)
    * Cumple con la directiva oficial de reintentos idempotentes ante saturación 503.
    */
-  public emitInvoice(request: CreateInvoiceRequest, keyOverride?: string): Observable<CreateInvoiceResponse> {
+  public emitInvoice(request: CreateInvoiceRequest, keyOverride?: string): Observable<CreateInvoiceResult> {
     this._loading$.next(true);
     this._error$.next(null);
 
@@ -250,7 +255,7 @@ export class InvoiceService {
     });
 
     return this.http.post<CreateInvoiceResponse>(`${this.apiBase}/invoices`, apiPayload, { headers }).pipe(
-      tap(response => {
+      map(response => {
         this._loading$.next(false);
         // Limpiar estado de saturación ya que la petición fue admitida exitosamente
         this._admissionSaturated$.next({
@@ -263,6 +268,11 @@ export class InvoiceService {
         const newDoc = this.buildDocumentViewFromRequest(request, response.id, response.status);
         this.addInvoiceInmutably(newDoc);
         this.pollRealDocumentStatus(response.id);
+
+        return {
+          ...response,
+          document: newDoc
+        };
       }),
       catchError((err: HttpErrorResponse) => {
         this._loading$.next(false);
@@ -285,7 +295,8 @@ export class InvoiceService {
           id: '',
           status: isSaturated ? 'ADMISSION_SATURATED' : 'ERROR',
           total: request.expectedTotal,
-          created: false
+          created: false,
+          error: errMsg
         });
       })
     );
@@ -295,14 +306,15 @@ export class InvoiceService {
    * Reintenta la emisión de la factura satura utilizando EXACTAMENTE la misma Idempotency-Key
    * y la misma petición, como lo exige la normativa oficial del SRI / Emitta.
    */
-  public retryAdmissionInvoice(): Observable<CreateInvoiceResponse> {
+  public retryAdmissionInvoice(): Observable<CreateInvoiceResult> {
     const current = this._admissionSaturated$.getValue();
     if (!current.lastRequest || !current.idempotencyKey) {
       return of({
         id: '',
         status: 'ERROR',
         total: 0,
-        created: false
+        created: false,
+        error: 'No hay petición pendiente de reintento'
       });
     }
     return this.emitInvoice(current.lastRequest, current.idempotencyKey);

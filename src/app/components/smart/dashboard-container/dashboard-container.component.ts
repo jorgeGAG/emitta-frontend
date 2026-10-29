@@ -4,7 +4,7 @@ import { InvoiceService } from '../../../services/invoice.service';
 import { AuthService } from '../../../services/auth.service';
 import { FiscalService } from '../../../services/fiscal.service';
 import { CompanyService } from '../../../services/company.service';
-import { CreateInvoiceRequest } from '../../../models/invoice.model';
+import { CreateInvoiceRequest, DocumentView } from '../../../models/invoice.model';
 import { FiscalConfigurationRequest, FiscalConfigurationEntry } from '../../../models/fiscal.model';
 import { Company } from '../../../models/company.model';
 
@@ -59,6 +59,12 @@ import { AppIconComponent } from '../../dumb/app-icon/app-icon.component';
         <div class="alert-banner error" *ngIf="error$ | async as err">
           <span>⚠️ {{ err }}</span>
           <button type="button" class="btn-dismiss" (click)="onDismissError()">Cerrar</button>
+        </div>
+
+        <!-- Toast de Notificación / Éxito -->
+        <div class="alert-banner success" *ngIf="successToastMessage">
+          <span>✅ {{ successToastMessage }}</span>
+          <button type="button" class="btn-dismiss" (click)="successToastMessage = null">Cerrar</button>
         </div>
 
         <!-- 1. VISTA PUNTO DE VENTA / EMITIR FACTURA (VISTA PRINCIPAL DEL SISTEMA) -->
@@ -157,6 +163,58 @@ import { AppIconComponent } from '../../dumb/app-icon/app-icon.component';
         (close)="showCompanyModal = false"
       ></app-company-modal>
 
+      <!-- MODAL DE ÉXITO TRAS EMISIÓN DE FACTURA (FEEDBACK POS INMEDIATO) -->
+      <div class="pos-modal-backdrop" *ngIf="showSuccessModal" (click)="closeSuccessModal()">
+        <div class="pos-success-modal" (click)="$event.stopPropagation()">
+          <div class="success-icon-badge">
+            <app-icon name="check" [size]="32"></app-icon>
+          </div>
+
+          <h3 class="success-title">¡Factura Emitida con Éxito!</h3>
+          <p class="success-desc">
+            El comprobante electrónico ha sido registrado y procesado correctamente.
+          </p>
+
+          <div class="receipt-summary-box" *ngIf="lastEmittedInvoice as inv">
+            <div class="receipt-row highlight">
+              <span class="r-label">Secuencial SRI:</span>
+              <span class="r-val seq-badge">{{ inv.sequential }}</span>
+            </div>
+            <div class="receipt-row">
+              <span class="r-label">Cliente / Razón Social:</span>
+              <span class="r-val bold">{{ inv.buyer.name || 'CONSUMIDOR FINAL' }}</span>
+            </div>
+            <div class="receipt-row">
+              <span class="r-label">RUC / Cédula:</span>
+              <span class="r-val">{{ inv.buyer.identification || '9999999999999' }}</span>
+            </div>
+            <div class="receipt-row">
+              <span class="r-label">Estado:</span>
+              <span class="r-val status-badge" [class.authorized]="inv.status === 'AUTHORIZED'">
+                ● {{ inv.status === 'AUTHORIZED' ? 'Autorizado por SRI' : (inv.status || 'Registrado') }}
+              </span>
+            </div>
+            <div class="receipt-divider"></div>
+            <div class="receipt-row total-row">
+              <span class="r-label total-label">TOTAL COBRADO:</span>
+              <span class="r-val total-amount">\${{ inv.total | number:'1.2-2' }} USD</span>
+            </div>
+          </div>
+
+          <div class="modal-actions-grid">
+            <button type="button" class="btn-pos-action primary" (click)="closeSuccessModal()">
+              <app-icon name="cart" [size]="15"></app-icon> Nueva Venta (POS)
+            </button>
+            <button type="button" class="btn-pos-action secondary" (click)="viewEmittedInvoices()">
+              <app-icon name="receipt" [size]="15"></app-icon> Ver en Comprobantes
+            </button>
+            <button type="button" class="btn-pos-action outline" *ngIf="lastEmittedInvoice" (click)="inspectEmittedInvoice()">
+              <app-icon name="eye" [size]="15"></app-icon> Ver Factura / RIDE
+            </button>
+          </div>
+        </div>
+      </div>
+
       <footer class="app-footer">
         <div class="footer-inner">
           <span>Emitta POS v2 · Arquitectura Multi-Empresa con Repositorio Desacoplado & SRI Cloud</span>
@@ -195,6 +253,11 @@ import { AppIconComponent } from '../../dumb/app-icon/app-icon.component';
       color: var(--danger-text);
       border: 1px solid var(--danger-border);
     }
+    .alert-banner.success {
+      background-color: #ecfdf5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+    }
     .btn-dismiss {
       background: none;
       border: none;
@@ -203,6 +266,179 @@ import { AppIconComponent } from '../../dumb/app-icon/app-icon.component';
       color: inherit;
       cursor: pointer;
       text-decoration: underline;
+    }
+    /* MODAL DE ÉXITO TRAS EMISIÓN DE FACTURA */
+    .pos-modal-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      animation: fadeIn 0.2s ease-out;
+    }
+    .pos-success-modal {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 26px 24px;
+      max-width: 460px;
+      width: 92%;
+      box-shadow: 0 20px 50px rgba(15, 23, 42, 0.25);
+      text-align: center;
+      animation: scaleUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .success-icon-badge {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: #ecfdf5;
+      color: #10b981;
+      border: 2px solid #a7f3d0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 14px;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+    }
+    .success-title {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: #0f172a;
+      margin: 0 0 6px;
+    }
+    .success-desc {
+      font-size: 0.82rem;
+      color: #64748b;
+      margin: 0 0 18px;
+    }
+    .receipt-summary-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 20px;
+      text-align: left;
+    }
+    .receipt-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 0;
+      font-size: 0.82rem;
+      color: #475569;
+    }
+    .r-label {
+      font-size: 0.76rem;
+      color: #64748b;
+    }
+    .r-val {
+      color: #0f172a;
+      font-weight: 600;
+    }
+    .r-val.bold {
+      font-weight: 700;
+      max-width: 220px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .seq-badge {
+      font-family: monospace;
+      font-weight: 800;
+      color: #2563eb;
+      background: #eff6ff;
+      padding: 2px 8px;
+      border-radius: 4px;
+      border: 1px solid #bfdbfe;
+    }
+    .status-badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #b45309;
+      background: #fefce8;
+      padding: 2px 7px;
+      border-radius: 4px;
+    }
+    .status-badge.authorized {
+      color: #166534;
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+    }
+    .receipt-divider {
+      height: 1px;
+      background: #e2e8f0;
+      margin: 8px 0;
+    }
+    .total-row {
+      padding-top: 4px;
+    }
+    .total-label {
+      font-size: 0.8rem;
+      font-weight: 800;
+      color: #0f172a;
+    }
+    .total-amount {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: #1d4ed8;
+    }
+    .modal-actions-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .btn-pos-action {
+      height: 38px;
+      border-radius: 8px;
+      font-size: 0.84rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.15s ease;
+      border: none;
+    }
+    .btn-pos-action.primary {
+      background: #2563eb;
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
+    }
+    .btn-pos-action.primary:hover {
+      background: #1d4ed8;
+    }
+    .btn-pos-action.secondary {
+      background: #f8fafc;
+      color: #0f172a;
+      border: 1px solid #cbd5e1;
+    }
+    .btn-pos-action.secondary:hover {
+      background: #eff6ff;
+      border-color: #93c5fd;
+      color: #2563eb;
+    }
+    .btn-pos-action.outline {
+      background: transparent;
+      color: #64748b;
+      font-size: 0.78rem;
+    }
+    .btn-pos-action.outline:hover {
+      color: #0f172a;
+      text-decoration: underline;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes scaleUp {
+      from { transform: scale(0.92); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
     }
     .pos-header-banner {
       display: flex;
@@ -329,6 +565,9 @@ export class DashboardContainerComponent implements OnInit {
 
   activeTab: ActiveTab = 'create-invoice';
   showCompanyModal = false;
+  showSuccessModal = false;
+  lastEmittedInvoice: DocumentView | null = null;
+  successToastMessage: string | null = null;
   companies: Company[] = [];
 
   // Multi-Empresa y Base de Datos
@@ -409,14 +648,35 @@ export class DashboardContainerComponent implements OnInit {
 
   onInvoiceSubmit(request: CreateInvoiceRequest, creator?: InvoiceCreatorComponent): void {
     this.invoiceService.emitInvoice(request).subscribe(res => {
-      if (res && (res.status === 'QUEUED' || res.created)) {
+      if (res && res.status !== 'ERROR' && res.status !== 'ADMISSION_SATURATED') {
+        const doc = res.document || this.invoiceService.getInvoicesSnapshot()[0] || null;
+        this.lastEmittedInvoice = doc;
+        this.showSuccessModal = true;
+        this.successToastMessage = `¡Factura ${doc?.sequential || ''} emitida con éxito por $${(doc?.total || request.expectedTotal).toFixed(2)} USD!`;
         creator?.clearForm();
-        // Redirigir de forma elegante al registro de comprobantes para ver la factura y descargar RIDE
         setTimeout(() => {
-          this.onTabChange('invoices');
-        }, 1200);
+          if (this.successToastMessage) {
+            this.successToastMessage = null;
+          }
+        }, 7000);
       }
     });
+  }
+
+  closeSuccessModal(): void {
+    this.showSuccessModal = false;
+  }
+
+  viewEmittedInvoices(): void {
+    this.showSuccessModal = false;
+    this.onTabChange('invoices');
+  }
+
+  inspectEmittedInvoice(): void {
+    this.showSuccessModal = false;
+    if (this.lastEmittedInvoice?.id) {
+      this.invoiceService.selectInvoice(this.lastEmittedInvoice.id);
+    }
   }
 
   onRetryInvoice(creator?: InvoiceCreatorComponent): void {

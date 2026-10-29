@@ -185,13 +185,17 @@ export class InvoiceService {
 
   /**
    * Autentica el cliente API de forma real mediante POST /api/v1/auth/token
-   * utilizando las credenciales de API_CONFIG
+   * utilizando las credenciales dinámicas de la empresa o de API_CONFIG
    */
-  public authenticateAndLoadRealDocuments(): void {
-    const credentials = {
-      clientId: API_CONFIG.clientId,
-      clientSecret: API_CONFIG.clientSecret
-    };
+  public authenticateAndLoadRealDocuments(customCredentials?: { clientId?: string; clientSecret?: string }): void {
+    const clientId = customCredentials?.clientId || API_CONFIG.clientId;
+    const clientSecret = customCredentials?.clientSecret || API_CONFIG.clientSecret;
+
+    if (!clientId || clientId === 'AUTO' || !clientSecret || clientSecret === 'AUTO') {
+      return;
+    }
+
+    const credentials = { clientId, clientSecret };
 
     this.http.post<{ accessToken: string }>(`${this.apiBase}/auth/token`, credentials).pipe(
       tap(res => {

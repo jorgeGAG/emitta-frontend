@@ -616,6 +616,12 @@ export class DashboardContainerComponent implements OnInit {
     this.activeCompany$.subscribe(comp => {
       if (comp?.id) {
         this.invoiceService.loadInvoicesFromDatabase(comp.id);
+        if (comp.clientId && comp.clientSecret) {
+          this.invoiceService.authenticateAndLoadRealDocuments({
+            clientId: comp.clientId,
+            clientSecret: comp.clientSecret
+          });
+        }
       }
     });
 
@@ -666,7 +672,10 @@ export class DashboardContainerComponent implements OnInit {
 
   onCashierLoginSuccess(): void {
     this.loginError = null;
-    this.invoiceService.authenticateAndLoadRealDocuments();
+    const comp = this.companyService.getActiveCompanySnapshot();
+    this.invoiceService.authenticateAndLoadRealDocuments(
+      comp?.clientId && comp?.clientSecret ? { clientId: comp.clientId, clientSecret: comp.clientSecret } : undefined
+    );
     const token = this.invoiceService.getToken();
     if (token) {
       this.fiscalService.loadFiscalConfiguration(token).subscribe();

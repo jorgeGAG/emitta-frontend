@@ -4,7 +4,7 @@
  * por el backend multi-empresa (MongoDB Atlas / Repositorio Local).
  */
 export const API_CONFIG = {
-  baseUrl: '/api/v1',
-  clientId: 'AUTO',
-  clientSecret: 'AUTO'
+  baseUrl: 'https://api-emitta.nexorf.dev/api/v1',
+  clientId: 'emitta_0f0b2e0c-b6e3-4212-835b-0f7086d32aaa',
+  clientSecret: '4JfhIbySCySjQN0hxcaIBY36d29GtaBCQWSOzVRxYKo'
 };

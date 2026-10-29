@@ -32,6 +32,10 @@ export class CompanyService {
     );
   }
 
+  public getActiveCompanySnapshot(): Company | null {
+    return this._activeCompany$.getValue();
+  }
+
   public getCompanies(): Observable<Company[]> {
     return this.http.get<Company[]>('/api/pos/companies');
   }

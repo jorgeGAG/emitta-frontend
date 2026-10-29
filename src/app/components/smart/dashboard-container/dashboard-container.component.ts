@@ -48,6 +48,7 @@ import { AppIconComponent } from '../../dumb/app-icon/app-icon.component';
         [backendConnected]="(backendConnected$ | async) ?? false"
         [currentUser]="currentUser$ | async"
         [activeCompany]="activeCompany$ | async"
+        [activeFiscalEntry]="activeFiscalEntry$ | async"
         [systemStatus]="systemStatus$ | async"
         (tabChange)="onTabChange($event)"
         (logout)="onLogout()"

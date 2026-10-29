@@ -2,6 +2,7 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CashierUser } from '../../../models/auth.model';
 import { Company, SystemStatus } from '../../../models/company.model';
+import { FiscalConfigurationEntry } from '../../../models/fiscal.model';
 import { AppIconComponent } from '../app-icon/app-icon.component';
 
 export type ActiveTab = 'home' | 'create-invoice' | 'invoices' | 'tenants' | 'fiscal' | 'system';
@@ -26,16 +27,16 @@ export type ActiveTab = 'home' | 'create-invoice' | 'invoices' | 'tenants' | 'fi
             <div class="company-info">
               <div class="company-name-row">
                 <span class="company-title">
-                  {{ activeCompany?.tradeName || activeCompany?.legalName || 'Comercio Ecuador' }}
+                  {{ activeFiscalEntry?.tradeName || activeFiscalEntry?.legalName || activeCompany?.tradeName || activeCompany?.legalName || 'Comercio Ecuador (Jorge Ante)' }}
                 </span>
                 <span *ngIf="isSuperAdmin" class="switch-badge" title="Cambiar empresa">
                   Cambiar ▾
                 </span>
               </div>
               <span class="company-sub">
-                RUC: {{ activeCompany?.ruc || '0550249817001' }}
+                RUC: {{ activeFiscalEntry?.ruc || activeCompany?.ruc || '0550249817001' }}
                 <span class="sub-dot">·</span>
-                Matriz 001
+                {{ activeFiscalEntry?.establishmentCode ? ('Sucursal ' + activeFiscalEntry?.establishmentCode) : 'Matriz 001' }}
               </span>
             </div>
           </div>
@@ -428,6 +429,7 @@ export class NavbarComponent {
   @Input() activeTab: ActiveTab = 'create-invoice';
   @Input() currentUser: CashierUser | null = null;
   @Input() activeCompany: Company | null = null;
+  @Input() activeFiscalEntry: FiscalConfigurationEntry | null = null;
   @Input() systemStatus: SystemStatus | null = null;
   @Input() backendConnected = true;
 

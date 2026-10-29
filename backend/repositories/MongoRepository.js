@@ -11,8 +11,18 @@ class MongoRepository {
   }
 
   async getActiveCompany() {
-    const active = await this.db.collection('companies').findOne({ isActive: true });
+    let active = await this.db.collection('companies').findOne({ isActive: true });
+    if (active && active.ruc === '1792345678001') {
+      const real = await this.db.collection('companies').findOne({ ruc: '0550249817001' });
+      if (real) {
+        await this.db.collection('companies').updateMany({}, { $set: { isActive: false } });
+        await this.db.collection('companies').updateOne({ _id: real._id }, { $set: { isActive: true } });
+        return real;
+      }
+    }
     if (active) return active;
+    const realFallback = await this.db.collection('companies').findOne({ ruc: '0550249817001' });
+    if (realFallback) return realFallback;
     return await this.db.collection('companies').findOne({});
   }
 
@@ -112,17 +122,17 @@ class MongoRepository {
       if (compCount === 0) {
         console.log('🌱 [DB] Inicializando colecciones con datos de prueba en MongoDB Atlas...');
         await this.db.collection('companies').insertOne({
-          id: 'comp_default_01',
-          name: 'Comercializadora Principal (Emitta Cloud)',
-          ruc: '1792345678001',
-          legalName: 'NEXORF TECNOLOGIAS Y FACTURACION S.A.S.',
-          tradeName: 'EMITTA FACTURACION CLOUD',
-          mainAddress: 'Av. República de El Salvador N36-84 y Naciones Unidas, Quito - Ecuador',
+          id: 'comp_jorge_01',
+          name: 'Comercio Ecuador (Jorge Gabriel Ante)',
+          ruc: '0550249817001',
+          legalName: 'ANTE GUANOQUIZA JORGE GABRIEL',
+          tradeName: 'Comercio Ecuador (Jorge Ante)',
+          mainAddress: 'COTOPAXI, SAQUISILI, SAQUISILI',
           clientId: 'emitta_0f0b2e0c-b6e3-4212-835b-0f7086d32aaa',
           clientSecret: '4JfhIbySCySjQN0hxcaIBY36d29GtaBCQWSOzVRxYKo',
           isActive: true,
           establishments: [
-            { code: '001', name: 'Sucursal Matriz', address: 'Establecimiento 001, Matriz' }
+            { code: '001', name: 'Sucursal Saquisili', address: 'COTOPAXI, SAQUISILI, SAQUISILI' }
           ],
           createdAt: new Date().toISOString()
         });

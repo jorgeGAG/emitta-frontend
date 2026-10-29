@@ -1,0 +1,9 @@
+{
+    "appService.defaultWebAppToDeploy": "/subscriptions/4904f8e1-5874-4d74-a7b8-c99e78e1b862/resourceGroups/proyecto/providers/Microsoft.Web/sites/emita-frontend",
+    "appService.deploySubpath": ".",
+    "appService.zipIgnorePattern": [
+        "node_modules{,/**}",
+        ".angular{,/**}",
+        ".git{,/**}"
+    ]
+}

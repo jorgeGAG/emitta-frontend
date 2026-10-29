@@ -848,8 +848,8 @@ export class InvoiceCreatorComponent implements OnInit {
     const prod = this.availableProducts.find(p => p.id === prodId);
     if (!prod) return;
 
-    // Si el primer item es el genérico por defecto, reemplazarlo
-    if (this.items.length === 1 && this.items[0].sku === 'PROD-01' && this.items[0].description === 'Producto o Servicio General') {
+    // Si el primer item está vacío o es el placeholder por defecto, reemplazarlo
+    if (this.items.length === 1 && (!this.items[0].sku || !this.items[0].description || this.items[0].sku === 'PROD-01')) {
       this.items[0] = {
         sku: prod.sku,
         description: prod.name,
@@ -965,11 +965,27 @@ export class InvoiceCreatorComponent implements OnInit {
       this.buyerAddress = 'Guayaquil, Av. Carlos Julio Arosemena';
       this.items = [
         {
-          sku: 'SRV-CLOUD-01',
-          description: 'Suscripción Enterprise Servidor Emitta Dedicado',
-          quantity: 1,
-          unitPrice: 280.00,
-          discount: 20.00,
+          sku: 'ARR-001',
+          description: 'Arroz Súper Extra Flor 1 kg',
+          quantity: 20,
+          unitPrice: 1.25,
+          discount: 2.50,
+          taxes: [{ taxCode: '2', percentageCode: '0', rate: 0 }]
+        },
+        {
+          sku: 'ACE-001',
+          description: 'Aceite Vegetal La Favorita 1 Litro',
+          quantity: 12,
+          unitPrice: 2.50,
+          discount: 0,
+          taxes: [{ taxCode: '2', percentageCode: '4', rate: 15 }]
+        },
+        {
+          sku: 'DET-001',
+          description: 'Detergente en Polvo Deja Multiusos 1 kg',
+          quantity: 6,
+          unitPrice: 2.60,
+          discount: 0,
           taxes: [{ taxCode: '2', percentageCode: '4', rate: 15 }]
         }
       ];
@@ -981,10 +997,26 @@ export class InvoiceCreatorComponent implements OnInit {
       this.buyerAddress = 'Manta, Manabí';
       this.items = [
         {
-          sku: 'REP-COMP-02',
-          description: 'Mantenimiento Preventivo y Soporte de Hardware POS',
+          sku: 'HUE-001',
+          description: 'Cubeta de Huevos Frescos (30 unidades)',
+          quantity: 1,
+          unitPrice: 3.80,
+          discount: 0,
+          taxes: [{ taxCode: '2', percentageCode: '0', rate: 0 }]
+        },
+        {
+          sku: 'GAS-001',
+          description: 'Gaseosa Coca-Cola Original 3 Litros',
           quantity: 2,
-          unitPrice: 35.00,
+          unitPrice: 3.00,
+          discount: 0,
+          taxes: [{ taxCode: '2', percentageCode: '4', rate: 15 }]
+        },
+        {
+          sku: 'PAP-001',
+          description: 'Papas Fritas Ruffles Onduladas 120g',
+          quantity: 2,
+          unitPrice: 1.35,
           discount: 0,
           taxes: [{ taxCode: '2', percentageCode: '4', rate: 15 }]
         }
@@ -997,10 +1029,26 @@ export class InvoiceCreatorComponent implements OnInit {
       this.buyerAddress = 'Ecuador';
       this.items = [
         {
-          sku: 'SUM-TICK-05',
-          description: 'Rollos de Papel Térmico para Impresión RIDE 80mm',
-          quantity: 10,
+          sku: 'LEC-001',
+          description: 'Leche Entera Pasteurizada Vita 1 Litro',
+          quantity: 2,
+          unitPrice: 1.00,
+          discount: 0,
+          taxes: [{ taxCode: '2', percentageCode: '0', rate: 0 }]
+        },
+        {
+          sku: 'PAN-001',
+          description: 'Pan de Agua Tradicional (Funda x 10 unidades)',
+          quantity: 1,
           unitPrice: 1.50,
+          discount: 0,
+          taxes: [{ taxCode: '2', percentageCode: '0', rate: 0 }]
+        },
+        {
+          sku: 'ACE-001',
+          description: 'Aceite Vegetal La Favorita 1 Litro',
+          quantity: 1,
+          unitPrice: 2.50,
           discount: 0,
           taxes: [{ taxCode: '2', percentageCode: '4', rate: 15 }]
         }

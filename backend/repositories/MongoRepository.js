@@ -95,7 +95,7 @@ class MongoRepository {
 
   // --- PRODUCTOS / CATÁLOGO ---
   async getProducts(companyId = null) {
-    const filter = companyId ? { $or: [{ companyId }, { isGlobal: true }] } : {};
+    const filter = companyId ? { $or: [{ companyId }, { isGlobal: true }, { companyId: { $exists: false } }, { companyId: null }] } : {};
     return await this.db.collection('products').find(filter).sort({ name: 1 }).toArray();
   }
 

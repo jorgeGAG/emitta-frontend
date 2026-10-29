@@ -5,10 +5,12 @@
  */
 
 const dns = require('dns');
-try {
-  // Configurar DNS públicos para resolver registros SRV de MongoDB Atlas en Windows/ISPs
-  dns.setServers(['8.8.8.8', '1.1.1.1']);
-} catch (e) {}
+if (process.platform === 'win32' && !process.env.WEBSITE_SITE_NAME) {
+  try {
+    // Configurar DNS públicos solo en desarrollo Windows si es necesario
+    dns.setServers(['8.8.8.8', '1.1.1.1']);
+  } catch (e) {}
+}
 
 let mongoClient = null;
 let mongoDb = null;
@@ -26,7 +28,8 @@ async function initDatabase() {
     const { MongoClient } = require('mongodb');
     console.log('🔄 [DB] Conectando a MongoDB Atlas...');
     mongoClient = new MongoClient(uri, {
-      serverSelectionTimeoutMS: 5000,
+      serverSelectionTimeoutMS: 10000,
+      connectTimeoutMS: 10000
     });
     await mongoClient.connect();
     mongoDb = mongoClient.db();
@@ -42,7 +45,7 @@ async function initDatabase() {
     return { isConnected: true, db: mongoDb };
   } catch (error) {
     console.warn('⚠️  [DB] Error conectando a MongoDB Atlas:', error.message);
-    console.log('ℹ️  [DB] Activando Repositorio Local JSON como contingencia.');
+    console.log('ℹ️  [DB] Activando Repositorio Local JSON con datos precargados.');
     isConnectedToMongo = false;
     return { isConnected: false, db: null };
   }

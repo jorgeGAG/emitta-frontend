@@ -62,11 +62,11 @@ export class InvoiceService {
   private readonly _token$ = new BehaviorSubject<string | null>(this.token);
   public readonly token$: Observable<string | null> = this._token$.asObservable();
   private readonly _activePolling = new Set<string>();
+  private readonly _pollingTimers = new Map<string, any>();
 
   constructor() {
     this.recalculateMetrics(this._invoices$.getValue());
     this.checkHealth();
-    this.authenticateAndLoadRealDocuments();
     this.loadInvoicesFromDatabase();
   }
 
@@ -249,7 +249,9 @@ export class InvoiceService {
 
     const currentInvoices = this._invoices$.getValue();
     for (const inv of currentInvoices) {
-      this.pollRealDocumentStatus(inv.id);
+      if (inv.id && inv.status !== 'AUTHORIZED' && inv.status !== 'REJECTED' && inv.status !== 'NOT_AUTHORIZED') {
+        this.pollRealDocumentStatus(inv.id);
+      }
     }
   }
 
@@ -393,22 +395,32 @@ export class InvoiceService {
 
             // Si aún está en proceso asíncrono (QUEUED, SIGNED, SUBMITTED) y quedan reintentos:
             if (!terminalStatuses.includes(res.status) && attempts < maxAttempts) {
-              setTimeout(() => checkStatus(), intervalMs);
+              const timer = setTimeout(() => checkStatus(), intervalMs);
+              this._pollingTimers.set(documentId, timer);
             } else {
               this._activePolling.delete(documentId);
+              this._pollingTimers.delete(documentId);
             }
           } else {
             this._activePolling.delete(documentId);
+            this._pollingTimers.delete(documentId);
           }
         }),
         catchError(() => {
           this._activePolling.delete(documentId);
+          this._pollingTimers.delete(documentId);
           return of(null);
         })
       ).subscribe();
     };
 
     checkStatus();
+  }
+
+  public stopAllPolling(): void {
+    this._pollingTimers.forEach(timer => clearTimeout(timer));
+    this._pollingTimers.clear();
+    this._activePolling.clear();
   }
 
   /**
@@ -512,9 +524,18 @@ export class InvoiceService {
 
   private updateInvoiceInmutably(id: string, patch: Partial<DocumentView>): void {
     const current = this._invoices$.getValue();
+    const existing = current.find(inv => inv.id === id);
+    const hasMeaningfulChange = existing && (
+      (patch.status && existing.status !== patch.status) ||
+      (patch.accessKey && existing.accessKey !== patch.accessKey && patch.accessKey.length === 49) ||
+      (patch.sequential && existing.sequential !== patch.sequential)
+    );
+
     const updatedList = current.map(inv => inv.id === id ? { ...inv, ...patch } : inv);
     this._invoices$.next(updatedList);
-    this.persistInvoices(updatedList);
+    if (hasMeaningfulChange) {
+      this.persistInvoices(updatedList);
+    }
     this.recalculateMetrics(updatedList);
 
     const selected = this._selectedInvoice$.getValue();

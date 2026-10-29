@@ -617,7 +617,7 @@ export class DashboardContainerComponent implements OnInit {
     this.activeCompany$.subscribe(comp => {
       if (comp?.id) {
         this.invoiceService.loadInvoicesFromDatabase(comp.id);
-        if (comp.clientId && comp.clientSecret) {
+        if (this.authService.isLoggedInSync() && comp.clientId && comp.clientSecret) {
           this.invoiceService.authenticateAndLoadRealDocuments({
             clientId: comp.clientId,
             clientSecret: comp.clientSecret
@@ -684,6 +684,7 @@ export class DashboardContainerComponent implements OnInit {
   }
 
   onLogout(): void {
+    this.invoiceService.stopAllPolling();
     this.authService.logout();
     this.invoiceService.clearSelection();
   }

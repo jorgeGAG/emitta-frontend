@@ -20,6 +20,10 @@ export class AuthService {
   public readonly currentUser$: Observable<CashierUser | null> = this._currentUser$.asObservable();
   public readonly isLoggedIn$: Observable<boolean> = this._currentUser$.pipe(map(u => !!u));
 
+  public isLoggedInSync(): boolean {
+    return !!this._currentUser$.getValue();
+  }
+
   private loadStoredToken(): string | null {
     try {
       const token = sessionStorage.getItem(TOKEN_KEY);

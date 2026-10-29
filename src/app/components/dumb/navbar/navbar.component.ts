@@ -81,7 +81,7 @@ export type ActiveTab = 'home' | 'create-invoice' | 'invoices' | 'tenants' | 'fi
             [class.offline]="!backendConnected"
             [title]="backendConnected ? 'Conexión activa con la API oficial de Facturación Electrónica (SRI)' : 'Sin conexión con la API oficial del SRI'">
             <span class="pulse-dot" [class.dot-offline]="!backendConnected"></span>
-            <span class="status-label">{{ backendConnected ? 'API SRI Conectada' : 'API Desconectada' }}</span>
+            <span class="status-label">{{ backendConnected ? 'API Conectada' : 'API Desconectada' }}</span>
           </div>
 
           <div class="nav-divider"></div>

@@ -2,7 +2,7 @@ const companyService = require('../services/company.service');
 const authService = require('../services/auth.service');
 const invoiceService = require('../services/invoice.service');
 const productService = require('../services/product.service');
-const { isMongoConnected } = require('../config/database');
+const { isMongoConnected, getLastMongoError } = require('../config/database');
 
 function handleApiRoutes(req, res, parsedUrl, body) {
   const pathname = parsedUrl.pathname;
@@ -26,6 +26,7 @@ function handleApiRoutes(req, res, parsedUrl, body) {
       status: 'ONLINE',
       database: isMongoConnected() ? 'MongoDB Atlas (Nube)' : 'Repositorio Local JSON (Fallback)',
       isMongoAtlas: isMongoConnected(),
+      mongoError: isMongoConnected() ? null : getLastMongoError(),
       serverTime: new Date().toISOString()
     }));
     return true;

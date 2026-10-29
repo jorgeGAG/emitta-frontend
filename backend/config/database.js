@@ -15,40 +15,62 @@ if (process.platform === 'win32' && !process.env.WEBSITE_SITE_NAME) {
 let mongoClient = null;
 let mongoDb = null;
 let isConnectedToMongo = false;
+let lastMongoError = null;
 
-async function initDatabase() {
+async function connectToMongo() {
+  if (isConnectedToMongo) return true;
+
   const uri = process.env.MONGODB_URI || 'mongodb+srv://jorgeante08_db_user:uf3LPyg9mg9wVBJs@cluster0.hhfosdd.mongodb.net/emitta_pos?retryWrites=true&w=majority';
 
   if (!uri) {
-    console.log('ℹ️  [DB] Variable MONGODB_URI no detectada. Operando con Repositorio Local JSON.');
-    return { isConnected: false, db: null };
+    lastMongoError = 'Variable MONGODB_URI no configurada';
+    return false;
   }
 
   try {
     const { MongoClient } = require('mongodb');
     console.log('🔄 [DB] Conectando a MongoDB Atlas...');
-    mongoClient = new MongoClient(uri, {
-      serverSelectionTimeoutMS: 10000,
-      connectTimeoutMS: 10000
+    const client = new MongoClient(uri, {
+      serverSelectionTimeoutMS: 8000,
+      connectTimeoutMS: 8000
     });
-    await mongoClient.connect();
-    mongoDb = mongoClient.db();
+    await client.connect();
+    mongoClient = client;
+    mongoDb = client.db();
     isConnectedToMongo = true;
+    lastMongoError = null;
     console.log('✅ [DB] ¡Conexión exitosa a MongoDB Atlas!');
-    
-    // Sembrar datos iniciales si las colecciones están vacías
+
     try {
       const mongoRepo = require('../repositories/MongoRepository');
       await mongoRepo.seedIfEmpty();
     } catch {}
 
-    return { isConnected: true, db: mongoDb };
+    return true;
   } catch (error) {
+    lastMongoError = error.message;
     console.warn('⚠️  [DB] Error conectando a MongoDB Atlas:', error.message);
-    console.log('ℹ️  [DB] Activando Repositorio Local JSON con datos precargados.');
     isConnectedToMongo = false;
-    return { isConnected: false, db: null };
+    return false;
   }
+}
+
+async function initDatabase() {
+  await connectToMongo();
+
+  // Si falló en el arranque en frío (cold start), reintentar en segundo plano periódicamente
+  if (!isConnectedToMongo) {
+    const timer = setInterval(async () => {
+      if (isConnectedToMongo) {
+        clearInterval(timer);
+      } else {
+        await connectToMongo();
+      }
+    }, 8000);
+    if (timer.unref) timer.unref();
+  }
+
+  return { isConnected: isConnectedToMongo, db: mongoDb };
 }
 
 function getDatabase() {
@@ -59,8 +81,13 @@ function isMongoConnected() {
   return isConnectedToMongo;
 }
 
+function getLastMongoError() {
+  return lastMongoError;
+}
+
 module.exports = {
   initDatabase,
   getDatabase,
-  isMongoConnected
+  isMongoConnected,
+  getLastMongoError
 };

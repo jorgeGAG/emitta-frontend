@@ -103,19 +103,46 @@ export class InvoiceService {
             ivaAmount: inv.taxAmount || 0,
             total: inv.total || 0
           }));
-          this._invoices$.next(mapped);
-          this.recalculateMetrics(mapped);
+          if (mapped.length > 0) {
+            this._invoices$.next(mapped);
+            this.recalculateMetrics(mapped);
+            try { sessionStorage.setItem(INVOICES_STORAGE_KEY, JSON.stringify(mapped)); } catch {}
+          } else {
+            const fallback = this.loadStoredInvoices();
+            if (fallback.length > 0 && this._invoices$.getValue().length === 0) {
+              this._invoices$.next(fallback);
+              this.recalculateMetrics(fallback);
+            }
+          }
         }
       }),
-      catchError(() => of([]))
+      catchError(() => {
+        const fallback = this.loadStoredInvoices();
+        if (fallback.length > 0 && this._invoices$.getValue().length === 0) {
+          this._invoices$.next(fallback);
+          this.recalculateMetrics(fallback);
+        }
+        return of([]);
+      })
     ).subscribe();
   }
 
   private loadStoredInvoices(): DocumentView[] {
+    try {
+      const raw = sessionStorage.getItem(INVOICES_STORAGE_KEY);
+      if (raw) {
+        return JSON.parse(raw);
+      }
+    } catch {}
     return [];
   }
 
   private persistInvoices(invoices: DocumentView[]): void {
+    // Sincronizar en sessionStorage
+    try {
+      sessionStorage.setItem(INVOICES_STORAGE_KEY, JSON.stringify(invoices));
+    } catch {}
+
     // Sincronizar automáticamente en la Base de Datos (MongoDB)
     const latest = invoices[0];
     if (latest && latest.id) {

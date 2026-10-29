@@ -164,15 +164,32 @@ function handleApiRoutes(req, res, parsedUrl, body) {
   }
 
   if (pathname === '/api/pos/invoices' && method === 'POST') {
-    invoiceService.saveInvoice(body || {})
-      .then(saved => {
-        res.writeHead(201);
-        res.end(JSON.stringify({ success: true, invoice: saved }));
-      })
-      .catch(err => {
-        res.writeHead(400);
-        res.end(JSON.stringify({ success: false, error: err.message }));
-      });
+    companyService.getActiveCompany().then(activeComp => {
+      const payload = {
+        ...(body || {}),
+        companyId: body?.companyId || activeComp?.id || null,
+        createdAt: body?.createdAt || new Date().toISOString()
+      };
+      invoiceService.saveInvoice(payload)
+        .then(saved => {
+          res.writeHead(201);
+          res.end(JSON.stringify({ success: true, invoice: saved }));
+        })
+        .catch(err => {
+          res.writeHead(400);
+          res.end(JSON.stringify({ success: false, error: err.message }));
+        });
+    }).catch(() => {
+      invoiceService.saveInvoice(body || {})
+        .then(saved => {
+          res.writeHead(201);
+          res.end(JSON.stringify({ success: true, invoice: saved }));
+        })
+        .catch(err => {
+          res.writeHead(400);
+          res.end(JSON.stringify({ success: false, error: err.message }));
+        });
+    });
     return true;
   }
 

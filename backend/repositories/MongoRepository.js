@@ -59,7 +59,9 @@ class MongoRepository {
 
   // --- FACTURAS ---
   async getInvoices(companyId = null) {
-    const filter = companyId ? { companyId } : {};
+    const filter = companyId
+      ? { $or: [{ companyId }, { companyId: { $exists: false } }, { companyId: null }] }
+      : {};
     return await this.db.collection('invoices').find(filter).sort({ createdAt: -1 }).toArray();
   }
 
@@ -68,12 +70,17 @@ class MongoRepository {
       ? { $or: [{ documentId: invoice.documentId }, { id: invoice.id }] }
       : { id: invoice.id };
 
+    const toSave = {
+      ...invoice,
+      createdAt: invoice.createdAt || new Date().toISOString()
+    };
+
     await this.db.collection('invoices').updateOne(
       filter,
-      { $set: invoice },
+      { $set: toSave },
       { upsert: true }
     );
-    return invoice;
+    return toSave;
   }
 
   // --- PRODUCTOS / CATÁLOGO ---
